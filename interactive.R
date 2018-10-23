@@ -2,24 +2,6 @@
 library(data.tree)
 library(plotly)
 
-listOfLists <- list(
-  list_var = list(),
-  list_num = list()
-)
-
-# initialize the list of nodes and add the first element
-# for now, listName MUST == 'master_list'
-# initiate_node_list <- function(listName, dataframe, PCA) {
-#   assign(x = listName, value = list(), envir = .GlobalEnv)
-master_list[[1]] <<-
-    list(ID = "base",
-         members = rownames(dataframe),
-         parent = "",
-         pathString = 'base',
-         isLeaf = TRUE,
-         var = PCA$sdev^2 / sum(PCA$sdev^2) * 100)
-# }
-
 get_tree <- function(LIST) {
   x <-
     data.frame(
@@ -370,18 +352,19 @@ make_hca_plot_pdf <- function(nodeName, w=16, h=9, lwd=3) {
   # colors = c("#FED439", "#197EC0", "#91331F")
   d %>%
     set("branches_lwd", lwd) %>%
+    set("branches_k_color", k = 2) %>%
     # set("branches_col", colors[1]) %>%
     # Color branches according to their genus membership
-    set(what = "by_labels_branches_col",
-        value = fMicro[fMicro %in% get_leaves_attr(d, 'label')],
-        TF_values = c(colors[1], Inf)) %>%
-    set(what = "by_labels_branches_col",
-        value = fSolwa[fSolwa %in% get_leaves_attr(d, 'label')],
-        TF_values = c(colors[2], Inf)) %>%
-    set(what = "by_labels_branches_col",
-        value = fStrep[fStrep %in% get_leaves_attr(d, 'label')],
-        TF_values = c(colors[3], Inf)) %>%
-    # set(what = "leaves_col", value = "#4b4b4b") %>%
+    # set(what = "by_labels_branches_col",
+    #     value = fMicro[fMicro %in% get_leaves_attr(d, 'label')],
+    #     TF_values = c(colors[1], Inf)) %>%
+    # set(what = "by_labels_branches_col",
+    #     value = fSolwa[fSolwa %in% get_leaves_attr(d, 'label')],
+    #     TF_values = c(colors[2], Inf)) %>%
+    # set(what = "by_labels_branches_col",
+    #     value = fStrep[fStrep %in% get_leaves_attr(d, 'label')],
+    #     TF_values = c(colors[3], Inf)) %>%
+    # # set(what = "leaves_col", value = "#4b4b4b") %>%
     # set(what = "leaves_pch", value = c(ifelse(
     #   get_leaves_attr(d, 'label') %in% get_leaves_attr(d[[1]], 'label'), 15, 17))) %>%
     # color_labels(dend = ., k = 2) %>%
@@ -405,11 +388,31 @@ find_strain <- function(strainName) {
 }
 
 #### - ####
-process_node('base')
+run_all <- function(numORvar, N) {
+  master_list <<- list()
+  master_list[[1]] <<-
+    list(ID = "base",
+         members = rownames(f.features),
+         parent = "",
+         pathString = 'base',
+         isLeaf = TRUE,
+         var = df.pca$sdev^2 / sum(df.pca$sdev^2) * 100)
+  process_node('base')
+  auto_process(numOrVar = numORvar, N = N)
+  sapply(unlist(lapply(master_list,
+                       FUN=function(x) x$ID)),
+         FUN = function(x) make_hca_plot_pdf(x))
+  assign(x = paste("list", numORvar, N, sep='_'),
+         value = master_list,
+         envir = .GlobalEnv)
+}
 
-sapply(unlist(lapply(master_list,
-                     FUN=function(x) x$ID)),
-       FUN = function(x) make_hca_plot_pdf(x))
+# Untested; also requires modification of save hca function to
+# specify a subdirectory or just add a setwd inside run_all
+mapply(FUN = run_all(),
+       c(rep('num', 5), rep('var', 10)), # numORvar
+       c(seq(30,50,5), seq(10,20)) # N
+       )
 
 pdf(file = "explainedVar.pdf", width = 16, height = 9)
 par(bg = "#F0F0F0", fg = "#5e5e5e")
