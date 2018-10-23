@@ -1,6 +1,9 @@
 # mac related files
 .DS_Store
 
+# tables
+*.csv
+
 # History files
 .Rhistory
 .Rapp.history
