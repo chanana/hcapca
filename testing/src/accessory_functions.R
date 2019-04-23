@@ -1,32 +1,60 @@
-# interactive
-library(data.tree)
-library(plotly)
+# ~~~~ accessory functions ~~~~
+scale_pareto = function(df) {
+  #returns pareto scaled data
+  df = as.data.frame(
+    apply(
+      X = df,
+      MARGIN = 2,
+      FUN = function(x) (x - mean(x)) / sqrt(sd(x))
+    )
+  )
+}
 
-get_tree <- function(LIST) {
+remove_zeros = function(df) {
+  sumcol = colSums(df)
+  df = df[, sumcol != 0] # select only the non zero sum columns
+}
+
+convert_tree_to_dataframe <- function(LIST) {
   x <-
     data.frame(
-      'pathString' = unlist(
-        lapply(X = LIST,
-               FUN = function(x) x$pathString)),
-      'number' = unlist(
-        lapply(X = LIST,
-               FUN = function(x) length(x$members))),
-      'expanded' = unlist(
-        lapply(X = LIST,
-               FUN = function(x) ifelse(x$isLeaf, "No", "Yes"))),
-      'canBeExpanded' = unlist(
-        lapply(X = LIST,
-               FUN = function(x) ifelse((length(x$members) > 30 && x$isLeaf), "Yes", "No"))),
-      'PC1_PC2' = unlist(
-        lapply(X = LIST,
-               FUN = function(x) round(x$var[1] + x$var[2], 2)))
+      'pathString' = unlist(lapply(
+        X = LIST,
+        FUN = function(x)
+          x$pathString
+      )),
+      'number' = unlist(lapply(
+        X = LIST,
+        FUN = function(x)
+          length(x$members)
+      )),
+      'isLeaf' = unlist(lapply(
+        X = LIST,
+        FUN = function(x)
+          ifelse(x$isLeaf, "Yes", "No")
+      )),
+      'PC1_PC2' = unlist(lapply(
+        X = LIST,
+        FUN = function(x)
+          round(x$var[1] + x$var[2], 2)
+      )),
+      'links' = unlist(lapply(
+        X = LIST,
+        FUN = function(x) x$links
+      ))
     )
-  x2 <- as.Node(x)
-  return(x2)
+  return(x)
+}
+
+get_tree <- function(LIST) {
+  x <- as.Node(convert_tree_to_dataframe(LIST))
+  return(x)
 }
 
 display_tree <- function(LIST) {
-  print(get_tree(LIST), 'number', 'expanded', 'canBeExpanded', 'PC1_PC2')
+  print(get_tree(LIST),
+        'number', 'isLeaf', 'PC1_PC2', 'links',
+        limit=NULL)
 }
 
 get_node_position <- function(nodeName) {
@@ -55,11 +83,11 @@ unexplored_nodes <- function(nameOrNumber) {
   }
 }
 
-pca_based_on_membership <- function(name_list = NULL, scaled_data = NULL) {
+pca_based_on_membership <- function(dataframe=df, name_list = NULL, scaled_data = NULL) {
 
   # if supplied with scaled data, skip the next block
   if (is.null(scaled_data)) {
-    df <- remove_zeros(f.features[name_list, ])
+    df <- remove_zeros(dataframe[name_list, ])
 
     # scale -> make correlation matrix -> cluster ->
     # make dendrogram -> add labels
@@ -72,14 +100,14 @@ pca_based_on_membership <- function(name_list = NULL, scaled_data = NULL) {
   return(df.pca)
 }
 
-pca_based_on_node <- function(nodeName) {
+pca_based_on_node <- function(dataframe=df, nodeName) {
   n <- get_node_position(nodeName)
-  p <- pca_based_on_membership(name_list = master_list[[n]]$members)
+  p <- pca_based_on_membership(dataframe=dataframe, name_list = master_list[[n]]$members)
   return(p)
 }
 
 explained_variance_of_node <-
-  function(nameOfNode = NULL, position = NULL, scaled_data = NULL) {
+  function(dataframe=df, nameOfNode = NULL, position = NULL, scaled_data = NULL) {
     # returns a vector of explained variance for a given node; hopefully not all
     # three are null at any one time
 
@@ -91,15 +119,14 @@ explained_variance_of_node <-
     }
 
     # calculate pca of node based on its members if is supplied instead
-    p <- pca_based_on_membership(master_list[[n]]$members, scaled_data)
-
+    p <- pca_based_on_membership(dataframe=dataframe, master_list[[n]]$members, scaled_data)
 
     # the explained variance in a vector
     v <- p$sdev^2 / sum(p$sdev^2) * 100
     return(v)
   }
 
-process_node <- function(id) {
+process_node <- function(dataframe=df, id) {
   # finds the element in the list with the ID of id
   n <- get_node_position(id)
 
@@ -109,7 +136,7 @@ process_node <- function(id) {
   node <- master_list[[n]]
 
   # Get dataframe and remove zeroes
-  df <- remove_zeros(f.features[node$members, ])
+  df <- remove_zeros(dataframe[node$members, ])
 
   # Scale, get distance metric, cluster, and get dendrogram with labels
   df.s <- scale_pareto(df) # pareto scale the data
@@ -157,7 +184,7 @@ process_node <- function(id) {
   master_list[[n]]$isLeaf <<- FALSE
 }
 
-start_gui <- function() {
+start_gui <- function(dataframe=df) {
   while (TRUE) {
     cat(
       '\nYou can:
@@ -211,12 +238,12 @@ start_gui <- function() {
       cat('\nThat node has already been processed. Try a different node.\n')
       next
     } else {
-      process_node(answer)
+      process_node(dataframe=dataframe, answer)
     }
   }
 }
 
-auto_process <- function(numOrVar = "num", N = 30) {
+auto_process <- function(dataframe=df, numOrVar = "num", N = 30) {
   # check if 'N' is a number
   if (!is.numeric(N)) {
     return("Not a number!")
@@ -226,7 +253,7 @@ auto_process <- function(numOrVar = "num", N = 30) {
   if (identical(numOrVar, "num")) {
     if (N %% 1 != 0) {
       return("Not a whole number!")
-    } # must be a whole number for strain cutoff
+    } # must be a whole number for option 'num
 
     # if the tests pass, then we know to process based on a number cutoff
     while(TRUE) {
@@ -244,7 +271,7 @@ auto_process <- function(numOrVar = "num", N = 30) {
       # process all nodes present in a
       for (i in a) {
         cat('\n=====')
-        process_node(i)
+        process_node(dataframe=dataframe, id=i)
         cat('=====\nProcessed!\n')
       }
     }
@@ -255,9 +282,13 @@ auto_process <- function(numOrVar = "num", N = 30) {
     while(TRUE) {
       a <- unexplored_nodes('name') # get list of unexpanded nodes
       b <- c()
+      e <- unexplored_nodes("number") # get list of how many members each has
+
+      # if a node has only three or fewer members, it should not be expanded
+      a <- a[e > 3]
 
       for (i in a) {
-        v <- explained_variance_of_node(i)
+        v <- explained_variance_of_node(dataframe=dataframe, nameOfNode = i)
         n <- get_node_position(i)
         master_list[[n]]$var <<- v
         b <- c(b, round(v[1]+v[2], 2))
@@ -272,7 +303,7 @@ auto_process <- function(numOrVar = "num", N = 30) {
 
       for (i in a) {
         cat('\n=====')
-        process_node(i)
+        process_node(dataframe=dataframe, id=i)
         cat('=====\nProcessed!\n')
       }
     }
@@ -282,8 +313,8 @@ auto_process <- function(numOrVar = "num", N = 30) {
   }
 }
 
-make_pca_plot <- function(nodeName, axis1 = 1, axis2 = 2) {
-  p <- pca_based_on_node(nodeName)
+make_pca_plot <- function(dataframe=df, nodeName, axis1 = 1, axis2 = 2) {
+  p <- pca_based_on_node(dataframe=dataframe, nodeName)
 
   plt_scores <-
     plot_ly(data = as.data.frame(p$x[, c(axis1, axis2)]),
@@ -310,23 +341,33 @@ make_pca_plot <- function(nodeName, axis1 = 1, axis2 = 2) {
   return(list('scores' = plt_scores, 'loadings' = plt_loadings))
 }
 
-make_pca_html <- function(nodeName, axis1=1, axis2=2) {
-  p <- make_pca_plot(nodeName, axis1, axis2)
-  htmlwidgets::saveWidget(p$scores,
-                          paste0(nodeName, "PC", axis1, "-", axis2, "Scores.html"))
-  htmlwidgets::saveWidget(p$loadings,
-                          paste0(nodeName, "PC", axis1, "-", axis2, "Loadings.html"))
+make_pca_html <- function(dataframe=df, nodeName, axis1 = 1, axis2 = 2) {
+  p <- make_pca_plot(dataframe=dataframe, nodeName, axis1, axis2)
+  results_dir = "pca"
+  if(!dir.exists(results_dir)) dir.create(results_dir)
+  htmlwidgets::saveWidget(
+    widget = p$scores,
+    file = file.path(
+      getwd(), "pca", paste0(nodeName, "_PC", axis1, "-", axis2, "_S.html")),
+    selfcontained = TRUE
+  )
+  htmlwidgets::saveWidget(
+    widget = p$loadings,
+    file = file.path(
+      getwd(), "pca", paste0(nodeName, "_PC", axis1, "-", axis2, "_L.html")),
+    selfcontained = TRUE
+  )
   return("done!")
 }
 
-make_dendrogram <- function(nodeName) {
+make_dendrogram <- function(dataframe=df, nodeName) {
   n <- get_node_position(nodeName)
   name_list <- master_list[[n]]$members
 
-  df <- remove_zeros(f.features[name_list, ])
+  df <- remove_zeros(dataframe[name_list, ])
   df.s <- scale_pareto(df)
   df.cor <- cor(x = t(df.s),y = t(df.s)) #correlation matrix
-  df.clust <- hclust(as.dist(1 - df.cor), method = "average") #clusters
+  df.clust <- hclust(as.dist(1 -(df.cor)), method = "average") #clusters
   df.dend <- as.dendrogram(df.clust) #as dendrogram object
   labels(df.dend) <-
     rownames(df)[order.dendrogram(df.dend)] #label each leaf
@@ -334,46 +375,23 @@ make_dendrogram <- function(nodeName) {
   return(df.dend)
 }
 
-make_hca_plot_pdf <- function(nodeName, w=16, h=9, lwd=3) {
+make_hca_plot_pdf <- function(dataframe=df, nodeName, w=16, h=9, lwd=3, outfile="hca") {
   n <- get_node_position(nodeName)
-  d <- master_list[[n]]$dend
   number_of_members <- length(master_list[[n]]$members)
+  d <- master_list[[n]]$dend
 
   if (is.null(d)) {
-    d <- make_dendrogram(nodeName)
+    d <- make_dendrogram(dataframe=dataframe, nodeName)
   }
 
-  pdf(file = paste0(nodeName,"-", number_of_members, ".pdf"),
-      width = w, height = h)
-  par(bg = "#F0F0F0", fg = "#5e5e5e")
-  # par(bg = "#d2d2d2", fg = "#6e6e6e")
-  colors = c("#FF2700", '#008FD5', '#77AB43')
-  # colors = c("#FF2800", "#FFdd00", "#00bb3f", "#4512ae") # red, yellow, green, blue(ish)
-  # colors = c("#FED439", "#197EC0", "#91331F")
+  pdf(file = paste0(outfile, "/", nodeName, "-", number_of_members, ".pdf"),
+      width=w, height=h)
+  par(bg = colors[6], fg = colors[4])
   d %>%
     set("branches_lwd", lwd) %>%
-    set("branches_k_color", k = 2) %>%
-    # set("branches_col", colors[1]) %>%
-    # Color branches according to their genus membership
-    # set(what = "by_labels_branches_col",
-    #     value = fMicro[fMicro %in% get_leaves_attr(d, 'label')],
-    #     TF_values = c(colors[1], Inf)) %>%
-    # set(what = "by_labels_branches_col",
-    #     value = fSolwa[fSolwa %in% get_leaves_attr(d, 'label')],
-    #     TF_values = c(colors[2], Inf)) %>%
-    # set(what = "by_labels_branches_col",
-    #     value = fStrep[fStrep %in% get_leaves_attr(d, 'label')],
-    #     TF_values = c(colors[3], Inf)) %>%
-    # # set(what = "leaves_col", value = "#4b4b4b") %>%
-    # set(what = "leaves_pch", value = c(ifelse(
-    #   get_leaves_attr(d, 'label') %in% get_leaves_attr(d[[1]], 'label'), 15, 17))) %>%
-    # color_labels(dend = ., k = 2) %>%
+    color_branches(k = 2, col = colors[c(1,3)]) %>%
     hang.dendrogram %>%
-    # plot()
-    plot(panel.first = {grid(col = '#FFFFFF', lty = 3, nx = NA, ny = NULL)})
-  # legend(x = "bottomright", legend = c("Micro", "Solwa", "Strep", "Verr"),
-  #        col = c(colors[1:3], "#6e6e6e"),
-  #        lty = 1, lwd = 4, horiz = TRUE, cex = 2)
+    plot(panel.first = {grid(col = colors[8], lty = 3, nx = NA, ny = NULL)})
   dev.off()
 }
 
@@ -387,42 +405,32 @@ find_strain <- function(strainName) {
     ))
 }
 
-#### - ####
-run_all <- function(numORvar, N) {
-  master_list <<- list()
-  master_list[[1]] <<-
-    list(ID = "base",
-         members = rownames(f.features),
-         parent = "",
-         pathString = 'base',
-         isLeaf = TRUE,
-         var = df.pca$sdev^2 / sum(df.pca$sdev^2) * 100)
-  process_node('base')
-  auto_process(numOrVar = numORvar, N = N)
-  sapply(unlist(lapply(master_list,
-                       FUN=function(x) x$ID)),
-         FUN = function(x) make_hca_plot_pdf(x))
-  assign(x = paste("list", numORvar, N, sep='_'),
-         value = master_list,
-         envir = .GlobalEnv)
+add_links_attribute <- function(nodeName) {
+  node_pos <- get_node_position(nodeName)
+
+  # HCA
+  num_of_membs <- length(master_list[[node_pos]]$members)
+  HCA <- paste0("<a href='hca/", nodeName, "-", num_of_membs, ".pdf'", ">HCA</a>")
+
+  # PCA
+  PCA_Load <- paste0("<a href='pca/", nodeName, "_PC1-2_S.html'", ">PCA-S</a>")
+  PCA_Scor <- paste0("<a href='pca/", nodeName, "_PC1-2_L.html'", ">PCA-L</a>")
+
+  # Link
+  combined_path <- paste(HCA, PCA_Load, PCA_Scor, sep=" ")
+  master_list[[node_pos]]$links <<- combined_path
 }
 
-# Untested; also requires modification of save hca function to
-# specify a subdirectory or just add a setwd inside run_all
-mapply(FUN = run_all(),
-       c(rep('num', 5), rep('var', 10)), # numORvar
-       c(seq(30,50,5), seq(10,20)) # N
-       )
+pad_with_spaces <- function(nodeName) {
+  nodePos <- get_node_position(nodeName)
+  string <- master_list[[nodePos]]$links
+  spaces <- paste(rep(" ", m - nchar(string)), collapse = "")
+  master_list[[nodePos]]$links <<- paste0(string, spaces)
+}
 
-pdf(file = "explainedVar.pdf", width = 16, height = 9)
-par(bg = "#F0F0F0", fg = "#5e5e5e")
-plot(master_list_var[[1]]$var[1:10], type='l', col = "#77AB43", lwd=4,
-     ylab = 'Explained Variance', xlab = 'Principal Component',
-     panel.first = {grid(col = '#5e5e5e', lty = 3, nx = NULL, ny = NULL)})
-points(master_list_var[[1]]$var[1:10], pch = 1, col = 'black')
-# lines(master_list[[1]]$var, type='l', col = "#77AB43", lwd=3)
-# lines(master_list_var[[2]]$var[1:50], type='l', col = "#FF2700", lwd=4)
-# lines(master_list_var[[3]]$var[1:50], type='l', col = "#008FD5", lwd=4)
-dev.off()
-
-#### - ####
+make_simple_PCA <- function(dataframe=df, nodeName, cex=1.5, w=11, h=8) {
+  p <- pca_based_on_node(dataframe=dataframe, nodeName)
+  pdf(file=paste0(nodeName, "-simple.pdf"), width=w, height=h)
+  plot(p$x[,1:2], pch=0, cex=cex)
+  dev.off()
+}

@@ -1,0 +1,35 @@
+---
+default:
+    # Directory to store outputs
+    output_folder_hca: hca
+    output_folder_pca: pca
+
+    # Input table locations
+    spectral_table: data/Table.dat
+    mass_table: data/Variables_m.dat
+    time_table: data/Variables_t.dat
+    sample_names: data/Analyses.dat
+
+    # Do you need sample name pattern matching?
+    # Accepts: "TRUE" and "FAlSE"
+    pattern_needed: FALSE
+    # Pattern for sample name matching
+    # Accepts regex patterns
+    row_name_pattern: "[ABC][0-9]{3,4}"
+    
+    # Time format 
+    # Accepts: "min" or "sec"
+    time_format: min
+
+    # Generate tree based on number of members or variance of cluster
+    # Accepts: "num" or "var"
+    numOrVar: var
+
+    # The cut-off value for either setting from above
+    # Accepts: any positive rational number
+    N_numOrVar: 17.5
+
+    # Save image after computing overall PCA, HCA
+    # Accepts: True, False, and all these https://yaml.org/type/bool.html
+    save_image: TRUE
+... 
