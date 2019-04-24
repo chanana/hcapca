@@ -3,6 +3,9 @@ hca/
 pca/
 data/
 
+# swp files from vim
+*.swp
+
 # mac related files
 .DS_Store
 
