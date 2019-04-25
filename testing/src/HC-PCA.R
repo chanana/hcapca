@@ -18,16 +18,16 @@ source(file.path("src", "accessory_functions.R"))
 parameters <- config::get(file = "config_file.yaml")
 
 # Read files
-df <- fread(parameters$spectral_table,
+df <- fread(input = parameters$spectral_table,
             header = F,
             data.table = T)
-dfrows <- fread(parameters$sample_names,
+dfrows <- fread(input = parameters$sample_names,
+                header = F,
+                data.table = F, sep = NULL)
+dfcolM <- fread(input = parameters$mass_table,
                 header = F,
                 data.table = F)
-dfcolM <- fread(parameters$mass_table,
-                header = F,
-                data.table = F)
-dfcolT <- fread(parameters$time_table,
+dfcolT <- fread(input = parameters$time_table,
                 header = F,
                 data.table = F)
 
@@ -51,12 +51,8 @@ if (length(col_to_delete) != 0) {
   df[, (col_to_delete) := NULL]
 }
 
-if (parameters$time_format == "sec") {
-  dfcolT <- dfcolT / 60
-  dfcolT <- round(dfcolT, 2)
-}
 # combine mass and time into one string separated by underscore
-dfcol <- paste0(dfcolM[,1], "_", dfcolT[,1])
+dfcol <- paste0(dfcolM, "_", dfcolT)
 
 # There are fewer columns in the original dataset because of the zero removal step. Select only the columns common to both the original data and the column names.
 if (length(col_to_delete) != 0) {
@@ -65,7 +61,7 @@ if (length(col_to_delete) != 0) {
 colnames(df) <- dfcol
 
 df <- as.data.frame(df)
-rownames(df) <- dfrows[,1]
+rownames(df) <- dfrows
 
 cat("\n---------read data----------")
 
