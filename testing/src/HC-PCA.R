@@ -18,12 +18,17 @@ source(file.path("src", "accessory_functions.R"))
 parameters <- config::get(file = "config_file.yaml")
 
 # Read files
-df <- fread(input = parameters$spectral_table,
-            header = F,
-            data.table = T)
-dfrows <- fread(input = parameters$sample_names,
-                header = F,
-                data.table = F, sep = NULL)
+df <- fread(
+  input = parameters$spectral_table,
+  header = F,
+  data.table = T
+)
+dfrows <- fread(
+  input = parameters$sample_names,
+  header = F,
+  data.table = F,
+  sep = NULL
+)
 dfcolM <- fread(input = parameters$mass_table,
                 header = F,
                 data.table = F)
@@ -39,13 +44,15 @@ if (parameters$pattern_needed) {
 
 # check for duplicated rows
 duplicates <- duplicated(dfrows)
-if (any(duplicates)) { # if any duplicates are found
-  df <- df[c(!duplicates), ] # remove corresponding rows from data
+if (any(duplicates)) {
+  # if any duplicates are found
+  df <- df[c(!duplicates),] # remove corresponding rows from data
   dfrows <- dfrows[c(!duplicates)] # remove duplicated samples
 }
 
 # find columns that are completely zero and remove them
-col_to_delete <- which(colSums(df) == 0, arr.ind = TRUE) #returns a named int
+col_to_delete <-
+  which(colSums(df) == 0, arr.ind = TRUE) #returns a named int
 if (length(col_to_delete) != 0) {
   # there are columns that are completely zero
   df[, (col_to_delete) := NULL]
@@ -140,7 +147,11 @@ for (node in nodeNames) {
     print("Three or fewer members; skipping...")
     next
   } else {
-    make_hca_plot_pdf(nodeName = node, dataframe = df)
+    make_hca_plot_pdf(
+      nodeName = node,
+      dataframe = df,
+      outfile = parameters$output_folder_hca
+    )
   }
 }
 
@@ -182,7 +193,11 @@ for (node in nodeNames) {
     print("Two or fewer members; skipping...")
     next
   } else {
-    make_pca_html(nodeName = node, dataframe = df)
+    make_pca_html(
+      nodeName = node,
+      dataframe = df,
+      outfile = parameters$output_folder_pca
+    )
   }
 }
 cat("\n-------made PCA plots-------")
