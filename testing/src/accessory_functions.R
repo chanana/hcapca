@@ -1,5 +1,5 @@
 # ~~~~ accessory functions ~~~~
-scale_pareto = function(df) {
+scale_pareto <- function(df) {
   #returns pareto scaled data
   df = as.data.frame(apply(
     X = df,
@@ -9,9 +9,31 @@ scale_pareto = function(df) {
   ))
 }
 
-remove_zeros = function(df) {
+remove_zeros <- function(df) {
   sumcol = colSums(df)
   df = df[, sumcol != 0] # select only the non zero sum columns
+}
+
+euclidean_distance <- function(x) {
+  sqrt(x[1] ^ 2 + x[2] ^ 2)
+}
+
+add_euclidean_distance <- function(df) {
+  df <- as.data.frame(df)
+  df$euc <- apply(X = df, MARGIN = 1, euclidean_distance)
+  return(df)
+}
+
+select_top_N_points <- function(df, N_points = 5000) {
+  # warning: loadings plot must have 3 columns; first two are points,
+  # last one is euclidean distance named euc
+  df <- df[order(df$euc, decreasing = TRUE), ]
+  df <- df[1:N_points, ]
+  return(df)
+}
+
+remove_euclidean_distance_column <- function(df) {
+  return(df[, -3])
 }
 
 convert_tree_to_dataframe <- function(LIST) {
@@ -106,7 +128,7 @@ pca_based_on_membership <-
            scaled_data = NULL) {
     # if supplied with scaled data, skip the next block
     if (is.null(scaled_data)) {
-      df <- remove_zeros(dataframe[name_list,])
+      df <- remove_zeros(dataframe[name_list, ])
 
       # scale -> make correlation matrix -> cluster ->
       # make dendrogram -> add labels
@@ -160,7 +182,7 @@ process_node <- function(dataframe = df, id) {
   node <- master_list[[n]]
 
   # Get dataframe and remove zeroes
-  df <- remove_zeros(dataframe[node$members,])
+  df <- remove_zeros(dataframe[node$members, ])
 
   # Scale, get distance metric, cluster, and get dendrogram with labels
   df.s <- scale_pareto(df) # pareto scale the data
@@ -323,7 +345,8 @@ auto_process <- function(dataframe = df,
       a <- a[e > 3]
 
       for (i in a) {
-        v <- explained_variance_of_node(dataframe = dataframe, nameOfNode = i)
+        v <-
+          explained_variance_of_node(dataframe = dataframe, nameOfNode = i)
         n <- get_node_position(i)
         master_list[[n]]$var <<- v
         b <- c(b, round(v[1] + v[2], 2))
@@ -372,9 +395,12 @@ make_pca_plot <-
       ) %>%
       layout(title = paste0('Scores Plot: PC', axis1, ' v PC', axis2))
 
+    loadings <- add_euclidean_distance(df = p$rotation[, c(axis1, axis2)])
+    loadings <- select_top_N_points(df = loadings, N_points = 5000)
+    loadings <- remove_euclidean_distance_column(loadings)
     plt_loadings <-
       plot_ly(
-        data = as.data.frame(p$rotation[, c(axis1, axis2)]),
+        data = as.data.frame(loadings),
         x = as.formula(paste0("~PC", axis1)),
         y = as.formula(paste0("~PC", axis2)),
         # x = paste0("~PC",plane1), y = paste0("~PC",plane2),
@@ -385,7 +411,7 @@ make_pca_plot <-
                       width = 2)
         ),
         hoverinfo = 'text',
-        text = ~ rownames(p$rotation)
+        text = ~ rownames(loadings)
       ) %>%
       layout(title = paste0('Loadings Plot: PC', axis1, ' v PC', axis2))
 
@@ -399,9 +425,6 @@ make_pca_html <-
            axis2 = 2,
            outfile = "pca") {
     p <- make_pca_plot(dataframe = dataframe, nodeName, axis1, axis2)
-    results_dir = "pca"
-    if (!dir.exists(results_dir))
-      dir.create(results_dir)
     htmlwidgets::saveWidget(
       widget = p$scores,
       file = file.path(
@@ -427,7 +450,7 @@ make_dendrogram <- function(dataframe = df, nodeName) {
   n <- get_node_position(nodeName)
   name_list <- master_list[[n]]$members
 
-  df <- remove_zeros(dataframe[name_list,])
+  df <- remove_zeros(dataframe[name_list, ])
   df.s <- scale_pareto(df)
   df.cor <- cor(x = t(df.s), y = t(df.s)) #correlation matrix
   df.clust <-

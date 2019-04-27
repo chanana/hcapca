@@ -120,6 +120,9 @@ if (!dir.exists(parameters$output_folder_pca)) {
   dir.create(parameters$output_folder_pca)
 }
 
+# Get list of node names for later functions
+nodeNames <- unlist(lapply(master_list, `[[`, "ID"))
+
 # Mondrian Palette
 colors = c(
   "#0f7fbf",
@@ -140,7 +143,6 @@ colors = c(
 ) # 8. white
 
 # make HCA for each node
-nodeNames <- unlist(lapply(master_list, `[[`, "ID"))
 for (node in nodeNames) {
   n <- get_node_position(node)
   if (length(master_list[[n]]$members) < 4) {
