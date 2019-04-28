@@ -1,2 +1,2 @@
 # hcapca
-Hierarchical Clustering and Principal Component Analysis
+Hierarchical Clustering Analysis and Principal Component Analysis

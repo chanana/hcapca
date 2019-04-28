@@ -1,8 +1,8 @@
 ---
 default:
     # Directory to store outputs
-    output_folder_hca: "hca"
-    output_folder_pca: "pca"
+    output_folder_hca: "output/hca"
+    output_folder_pca: "output/pca"
 
     # Input table locations
     spectral_table: "data/Table.dat"
@@ -23,7 +23,11 @@ default:
 
     # The cut-off value for either setting from above
     # Accepts: any positive rational number
-    N_numOrVar: 20 
+    N_numOrVar: 20
+
+    # The number of maximum points to display on a loadings plot
+    # use this if script gets killed because of OOM (Out of Memory)
+    max_points_loadings: 5000
 
     # Save image after computing overall PCA, HCA
     # Accepts: True, False, and all these https://yaml.org/type/bool.html
