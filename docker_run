@@ -1,5 +1,0 @@
-docker run \
---rm \
--v $(pwd):/usr/local/src/hcapca \
-hcapca_with_libs \
-/usr/local/src/hcapca/src/HC-PCA.R config_file.yaml

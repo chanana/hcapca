@@ -1,4 +1,4 @@
-# Notes
+# Notes on running docker image
 
 1. Command used to run docker image
 ```bash
@@ -10,17 +10,20 @@ hcapca_with_libs \
 ```
 
 2. Evan Rees's command to run his docker image
-```jupyter-notebook
-#!docker run --rm -it biocontainers/clustal-omega:v1.2.1_cv5
-!echo "Pre-alignment"
-!ls example/data/processed
-!docker run \
+```bash
+docker run --rm -it biocontainers/clustal-omega:v1.2.1_cv5
+```
+3. ER's more nuanced command
+```bash
+echo "Pre-alignment"
+ls example/data/processed
+docker run \
     --rm \
     -v $(pwd)/example/data:/output \
     biocontainers/clustal-omega:v1.2.1_cv5 \
         clustalo -i /output/processed/orgs_yenB.faa \
         --force \
         --auto -o /output/processed/orgs_yenB.aln
-!echo "Post-alignment"        
-!ls example/data/processed
+echo "Post-alignment"
+ls example/data/processed
 ```
