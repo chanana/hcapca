@@ -25,7 +25,7 @@ add_euclidean_distance <- function(df) {
 }
 
 select_top_N_points <- function(df, N_points = 5000) {
-  # warning: loadings plot must have 3 columns; first two are points,
+  # warning: loadings plot must have 3 columns; first two are coordinates,
   # last one is euclidean distance named euc
   df <- df[order(df$euc, decreasing = TRUE),]
   df <- df[1:N_points,]
@@ -375,7 +375,8 @@ make_pca_plot <-
   function(dataframe = df,
            nodeName,
            axis1 = 1,
-           axis2 = 2) {
+           axis2 = 2,
+           max_points_loadings = 5000) {
     p <- pca_based_on_node(dataframe = dataframe, nodeName)
 
     plt_scores <-
@@ -397,7 +398,8 @@ make_pca_plot <-
 
     loadings <-
       add_euclidean_distance(df = p$rotation[, c(axis1, axis2)])
-    loadings <- select_top_N_points(df = loadings, N_points = 5000)
+    loadings <-
+      select_top_N_points(df = loadings, N_points = max_points_loadings)
     loadings <- remove_euclidean_distance_column(loadings)
     plt_loadings <-
       plot_ly(
@@ -424,8 +426,16 @@ make_pca_html <-
            nodeName,
            axis1 = 1,
            axis2 = 2,
-           outfile = "pca") {
-    p <- make_pca_plot(dataframe = dataframe, nodeName, axis1, axis2)
+           outfile = "pca",
+           max_points_loadings = 5000) {
+    p <-
+      make_pca_plot(
+        dataframe = dataframe,
+        nodeName = nodeName,
+        axis1 = axis1,
+        axis2 = axis2,
+        max_points_loadings = max_points_loadings
+      )
     htmlwidgets::saveWidget(
       widget = p$scores,
       file = file.path(

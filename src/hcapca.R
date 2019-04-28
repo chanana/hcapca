@@ -46,7 +46,7 @@ if (parameters$pattern_needed) {
 duplicates <- duplicated(dfrows)
 if (any(duplicates)) {
   # if any duplicates are found
-  df <- df[c(!duplicates),] # remove corresponding rows from data
+  df <- df[c(!duplicates), ] # remove corresponding rows from data
   dfrows <- dfrows[c(!duplicates)] # remove duplicated samples
 }
 
@@ -114,10 +114,10 @@ if (parameters$save_image) {
 
 # Setup Directories; hca; pca
 if (!dir.exists(parameters$output_folder_hca)) {
-  dir.create(parameters$output_folder_hca)
+  dir.create(parameters$output_folder_hca, recursive = TRUE)
 }
 if (!dir.exists(parameters$output_folder_pca)) {
-  dir.create(parameters$output_folder_pca)
+  dir.create(parameters$output_folder_pca, recursive = TRUE)
 }
 
 # Get list of node names for later functions
@@ -198,7 +198,8 @@ for (node in nodeNames) {
     make_pca_html(
       nodeName = node,
       dataframe = df,
-      outfile = parameters$output_folder_pca
+      outfile = parameters$output_folder_pca,
+      max_points_loadings = parameters$max_points_loadings
     )
   }
 }
