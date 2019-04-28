@@ -27,8 +27,8 @@ add_euclidean_distance <- function(df) {
 select_top_N_points <- function(df, N_points = 5000) {
   # warning: loadings plot must have 3 columns; first two are points,
   # last one is euclidean distance named euc
-  df <- df[order(df$euc, decreasing = TRUE), ]
-  df <- df[1:N_points, ]
+  df <- df[order(df$euc, decreasing = TRUE),]
+  df <- df[1:N_points,]
   return(df)
 }
 
@@ -128,7 +128,7 @@ pca_based_on_membership <-
            scaled_data = NULL) {
     # if supplied with scaled data, skip the next block
     if (is.null(scaled_data)) {
-      df <- remove_zeros(dataframe[name_list, ])
+      df <- remove_zeros(dataframe[name_list,])
 
       # scale -> make correlation matrix -> cluster ->
       # make dendrogram -> add labels
@@ -182,7 +182,7 @@ process_node <- function(dataframe = df, id) {
   node <- master_list[[n]]
 
   # Get dataframe and remove zeroes
-  df <- remove_zeros(dataframe[node$members, ])
+  df <- remove_zeros(dataframe[node$members,])
 
   # Scale, get distance metric, cluster, and get dendrogram with labels
   df.s <- scale_pareto(df) # pareto scale the data
@@ -395,7 +395,8 @@ make_pca_plot <-
       ) %>%
       layout(title = paste0('Scores Plot: PC', axis1, ' v PC', axis2))
 
-    loadings <- add_euclidean_distance(df = p$rotation[, c(axis1, axis2)])
+    loadings <-
+      add_euclidean_distance(df = p$rotation[, c(axis1, axis2)])
     loadings <- select_top_N_points(df = loadings, N_points = 5000)
     loadings <- remove_euclidean_distance_column(loadings)
     plt_loadings <-
@@ -450,7 +451,7 @@ make_dendrogram <- function(dataframe = df, nodeName) {
   n <- get_node_position(nodeName)
   name_list <- master_list[[n]]$members
 
-  df <- remove_zeros(dataframe[name_list, ])
+  df <- remove_zeros(dataframe[name_list,])
   df.s <- scale_pareto(df)
   df.cor <- cor(x = t(df.s), y = t(df.s)) #correlation matrix
   df.clust <-
