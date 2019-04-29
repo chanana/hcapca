@@ -1,8 +1,9 @@
 ---
 default:
     # Directory to store outputs
-    output_folder_hca: "output/hca"
-    output_folder_pca: "output/pca"
+    output_folder: "output"
+    output_folder_hca: "hca"
+    output_folder_pca: "pca"
 
     # Input table locations
     spectral_table: "data/Table.dat"
