@@ -436,24 +436,17 @@ make_pca_html <-
         axis2 = axis2,
         max_points_loadings = max_points_loadings
       )
-    htmlwidgets::saveWidget(
-      widget = p$scores,
-      file = file.path(
-        getwd(),
-        outfile,
-        paste0(nodeName, "_PC", axis1, "-", axis2, "_S.html")
-      ),
-      selfcontained = TRUE
-    )
-    htmlwidgets::saveWidget(
-      widget = p$loadings,
-      file = file.path(
-        getwd(),
-        outfile,
-        paste0(nodeName, "_PC", axis1, "-", axis2, "_L.html")
-      ),
-      selfcontained = TRUE
-    )
+    filename_scores <-
+      file.path(outfile, paste0(nodeName, "_PC", axis1, "-", axis2, "_S.html"))
+    htmlwidgets::saveWidget(widget = p$scores,
+                            file = filename_scores,
+                            selfcontained = TRUE)
+
+    filename_loadings <-
+      file.path(outfile, paste0(nodeName, "_PC", axis1, "-", axis2, "_L.html"))
+    htmlwidgets::saveWidget(widget = p$loadings,
+                            file = filename_loadings,
+                            selfcontained = TRUE)
     return("done!")
   }
 
@@ -488,11 +481,8 @@ make_hca_plot_pdf <-
       d <- make_dendrogram(dataframe = dataframe, nodeName)
     }
 
-    pdf(
-      file = paste0(outfile, "/", nodeName, "-", number_of_members, ".pdf"),
-      width = w,
-      height = h
-    )
+    filename <- file.path(outfile, paste0(nodeName, "-", number_of_members, ".pdf"))
+    pdf(file = filename, width = w, height = h)
     par(bg = colors[6], fg = colors[4])
     d %>%
       set("branches_lwd", lwd) %>%

@@ -113,11 +113,18 @@ if (parameters$save_image) {
 }
 
 # Setup Directories; hca; pca
-if (!dir.exists(parameters$output_folder_hca)) {
-  dir.create(parameters$output_folder_hca, recursive = TRUE)
+output_folder_hca <-
+  file.path(parameters$output_folder, parameters$output_folder_hca)
+output_folder_pca <-
+  file.path(parameters$output_folder, parameters$output_folder_pca)
+output_folder_report <-
+  file.path(parameters$output_folder)
+
+if (!dir.exists(output_folder_hca)) {
+  dir.create(output_folder_hca, recursive = TRUE)
 }
-if (!dir.exists(parameters$output_folder_pca)) {
-  dir.create(parameters$output_folder_pca, recursive = TRUE)
+if (!dir.exists(output_folder_pca)) {
+  dir.create(output_folder_pca, recursive = TRUE)
 }
 
 # Get list of node names for later functions
@@ -152,7 +159,7 @@ for (node in nodeNames) {
     make_hca_plot_pdf(
       nodeName = node,
       dataframe = df,
-      outfile = parameters$output_folder_hca
+      outfile = output_folder_hca
     )
   }
 }
@@ -198,7 +205,7 @@ for (node in nodeNames) {
     make_pca_html(
       nodeName = node,
       dataframe = df,
-      outfile = parameters$output_folder_pca,
+      outfile = output_folder_pca,
       max_points_loadings = parameters$max_points_loadings
     )
   }
@@ -212,7 +219,7 @@ default_options <- sapply(
     getOption(x)
 )
 options(width = 10000, max.print = 99999)
-sink(file = file.path(getwd(), "output/report.html"))
+sink(file = file.path(output_folder_report, "report.html"))
 cat(x = "<html><head><meta charset='utf-8'><title>Report</title></head><body><pre>")
 display_tree(LIST = master_list)
 cat(x = "</pre></body></html>")
