@@ -167,11 +167,9 @@ for (node in nodeNames) {
 cat("\n-------made HCA plots-------")
 
 # add combined_path
-suppressMessages(lapply(
-  X = master_list,
-  FUN = function(x)
-    add_links_attribute(nodeName = x$ID)
-))
+for (node in nodeNames) {
+  add_links_attribute(node)
+}
 
 # find max length of links
 m = max(unlist(lapply(
@@ -181,11 +179,9 @@ m = max(unlist(lapply(
 )))
 
 # fix links attribute with spaces
-suppressMessages(lapply(
-  master_list,
-  FUN = function(x)
-    pad_with_spaces(x$ID)
-))
+for (node in nodeNames) {
+  pad_with_spaces(node)
+}
 
 # fix var in list
 for (node in nodeNames) {
