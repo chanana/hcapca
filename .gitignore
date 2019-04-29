@@ -1,7 +1,6 @@
 # Output and data files
-hca/
-pca/
 data/
+output/
 
 # swp files from vim
 *.swp

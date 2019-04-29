@@ -212,14 +212,13 @@ default_options <- sapply(
     getOption(x)
 )
 options(width = 10000, max.print = 99999)
-sink(file = "report.html")
+sink(file = file.path(getwd(), "output/report.html"))
 cat(x = "<html><head><meta charset='utf-8'><title>Report</title></head><body><pre>")
 display_tree(LIST = master_list)
 cat(x = "</pre></body></html>")
 sink()
 options(width = default_options[1],
         max.print = default_options[2])
-
 
 cat("\n------Report Generated------")
 
@@ -234,4 +233,3 @@ cat("\nTotal time taken to run script:", format(end_time - start_time))
 # pdf(file=file.path(getwd(), "tree.pdf"), width=11, height=8)
 # plot(phy, label.offset=0.2, no.margin=T, show.node.label=T, adj=1)
 # dev.off()
-#
