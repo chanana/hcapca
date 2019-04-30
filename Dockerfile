@@ -7,5 +7,5 @@ RUN echo 'install.packages(c("dendextend", "data.table", "data.tree", "plotly", 
 RUN mkdir -p /hcapca/src
 
 COPY "./src/*.R" "hcapca/src/"
-
+COPY "./config_file.yaml" "hcapca/"
 WORKDIR /hcapca
