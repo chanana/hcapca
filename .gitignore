@@ -2,6 +2,7 @@
 data/
 output/
 save_points/
+src/test.R
 
 # swp files from vim
 *.swp
