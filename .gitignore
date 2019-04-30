@@ -1,6 +1,7 @@
 # Output and data files
 data/
 output/
+save_points/
 
 # swp files from vim
 *.swp
