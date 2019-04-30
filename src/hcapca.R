@@ -83,8 +83,13 @@ df.pca <- prcomp(df.s, center = F, scale. = F) # PCA of all samples
 
 cat("\n----calculated pca, hca-----")
 
+# For debugging purposes
 if (parameters$save_image) {
-  save.image(file.path("data", "save_point.RData"))
+  save_points_dir <- file.path(getwd(), "save_points")
+  if (!dir.exists(save_points_dir)) {
+    dir.create(save_points_dir)
+  }
+  save.image(file.path(save_points_dir, "save_point.RData"))
 }
 
 master_list = list()
@@ -108,8 +113,13 @@ auto_process(
 
 cat("\n-------processed tree--------")
 
+# For debugging purposes
 if (parameters$save_image) {
-  save.image(file.path("data", "save_point.RData"))
+  save_points_dir <- file.path(getwd(), "save_points")
+  if (!dir.exists(save_points_dir)) {
+    dir.create(save_points_dir)
+  }
+  save.image(file.path(save_points_dir, "save_point.RData"))
 }
 
 # Setup Directories; hca; pca
