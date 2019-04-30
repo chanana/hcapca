@@ -4,6 +4,9 @@ output/
 save_points/
 src/test.R
 
+# zip files
+*.zip
+
 # swp files from vim
 *.swp
 
