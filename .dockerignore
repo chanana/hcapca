@@ -1,2 +1,6 @@
 #ignores everything
 *
+
+#except
+!src/*
+!config_file.yaml
