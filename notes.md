@@ -27,3 +27,8 @@ docker run \
 echo "Post-alignment"
 ls example/data/processed
 ```
+4. Docker `build` command to make image
+```bash
+docker build --force-rm --rm -t schanana/hcapca:1.0 .
+```
+
