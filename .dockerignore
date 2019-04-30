@@ -2,5 +2,6 @@
 *
 
 #except
-!src/*
+!src/hcapca.R
+!src/accessory_functions.R
 !config_file.yaml
