@@ -32,3 +32,7 @@ ls example/data/processed
 docker build --force-rm --rm -t schanana/hcapca:1.0 .
 ```
 
+5. Docker run command
+```bash
+docker run -i --rm -v $(pwd):/hcapca schanana/hcapca:1.2 src/hcapca.R
+```
