@@ -1,7 +1,14 @@
 ---
 default:
+    # Location of accessory_functions.R (do not change if using docker)
+    # if using host system, change to wherever both hcapca.R and 
+    # accessory_functions.R are located
+    input_folder_accessory_script: "/script"
+
     # Directory to store outputs
     output_folder: "output"
+
+    # Will be created inside directory "output_folder"
     output_folder_hca: "hca"
     output_folder_pca: "pca"
 
