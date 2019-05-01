@@ -7,7 +7,6 @@
 * _Windows 10_
 
 ---
----
 
 # Instructions
 
@@ -15,10 +14,10 @@
 
 ## 2. Get example data and config file
 Example data and config can be found at [this link](https://uwmadison.box.com/s/ky874zpel8kby3yvwzsb1kthqbic9age). Please download and unzip to one place such that your directory structure looks like:  
-```R
-#hcapca-docker
+```
+hcapca-docker
     |--config_file.yaml
-    |--#data
+    |--data
         |--Analyses.dat
         |--Variables_m.dat
         |--Variables_t.dat
@@ -46,15 +45,15 @@ Note: I will refer to `hcapca-docker` as the `root` directory.
   ```
 
   ### 4. Open `output` folder to see a directory structure as follows:
-  ```python
-  #output
+  ```
+  output
     |--report.html
-    |--#hca
+    |--hca
     |   |--<lots_of>.pdf
     |
-    |--#pca
+    |--pca
         |--<names_with_underscores>.html
-        |--#<folders_with_same_names>
+        |--<folders_with_same_names>
   ```
 
   ### 5. Example output for b0
