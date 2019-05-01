@@ -46,11 +46,11 @@ Note: I will refer to `hcapca-docker` as the `root` directory.
   ```
 
   ### 4. Open `output` folder to see a directory structure as follows:
-  ```R
+  ```python
   #output
     |--report.html
     |--#hca
-    |   |--*.pdf
+    |   |--<lots_of>.pdf
     |
     |--#pca
         |--<names_with_underscores>.html
