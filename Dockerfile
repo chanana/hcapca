@@ -1,12 +1,11 @@
 ARG VERSION=3.5.2
 FROM rocker/tidyverse:${VERSION}
 
+# Install extra libraries
 RUN echo 'install.packages(c("dendextend", "data.table", "data.tree", "plotly", "config"))' > /tmp/packages.R && Rscript /tmp/packages.R
 
-# setup filesystem and copy scripts and data
-RUN mkdir -p /hcapca/src
+# Location of scripts inside container: /script/
+COPY "./src/*.R" "/script/"
 
-COPY "./src/*.R" "hcapca/src/"
-COPY "./config_file.yaml" "hcapca/"
-WORKDIR /hcapca
-ENV PATH=$PATH:/hcapca/src
+# Add scripts to PATH
+ENV PATH=$PATH:/script
