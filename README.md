@@ -3,8 +3,8 @@
 **Tested on:**
 * macOS 10.14.4
 * Ubuntu 18.04.2 LTS
-* _Windows 7_
-* _Windows 10_
+* Windows 7
+* _Windows 10_ pending
 
 ---
 
