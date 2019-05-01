@@ -14,7 +14,7 @@ suppressMessages(library(config)) # config file
 cat("\n------loaded libraries-------")
 
 # Variables
-source(file.path("src", "accessory_functions.R"))
+source(file.path(parameters$input_folder_accessory_script, "accessory_functions.R"))
 parameters <- config::get(file = "config_file.yaml")
 
 # Read files
