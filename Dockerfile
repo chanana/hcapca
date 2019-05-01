@@ -9,3 +9,4 @@ RUN mkdir -p /hcapca/src
 COPY "./src/*.R" "hcapca/src/"
 COPY "./config_file.yaml" "hcapca/"
 WORKDIR /hcapca
+ENV PATH=$PATH:/hcapca/src
