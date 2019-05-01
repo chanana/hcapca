@@ -57,3 +57,9 @@ Note: I will refer to `hcapca-docker` as the `root` directory.
   ```
 
   ### 5. Example output for b0
+  #### 1. `b0-15.pdf` HCA of node b0 with 15 samples
+  ![b0-15.pdf](./example_outputs/b0-15.jpg)
+  #### `b0_PC1-2_S.html` PCA Scores plot of b0 for PC1 and PC2
+  ![b0_PC1-2_S.html](./example_outputs/b0_PC1-2_S.html.png)
+  #### `report.html` Sample of report with links
+  ![Sample Report](./example_outputs/report.png)
