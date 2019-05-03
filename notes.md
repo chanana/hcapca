@@ -34,5 +34,12 @@ docker build --force-rm --rm -t schanana/hcapca:1.0 .
 
 5. Docker run command
 ```bash
-docker run -i --rm -v $(pwd):/hcapca schanana/hcapca:1.2 src/hcapca.R
+docker run \
+  --interactive \
+  --rm \
+  --name hcapca \
+  --volume $(pwd):/hp \
+  --workdir /hp \
+  schanana/hcapca:1.6 \
+  hcapca.R
 ```

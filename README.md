@@ -8,10 +8,10 @@
 
 # Instructions
 
-### 1. Install Docker
+## 1. Install Docker
 Install [Docker Community Edition (CE)](https://docs.docker.com/install) for your operating system. For older Mac and Windows systems, you will need to install [Docker Toolbox](https://docs.docker.com/toolbox/overview) instead.
 
-### 2. Get example data and config file
+## 2. Get example data and config file
 Example data and `config_file.yaml` can be found at [this link](https://uwmadison.box.com/s/ky874zpel8kby3yvwzsb1kthqbic9age). Please download and unzip to one place such that your directory structure looks like:  
 
 ```
@@ -26,7 +26,7 @@ root
 
 **_Note: The <span style="color:blue">`root`</span> directory is where you unzip the `data` folder and `config_file.yaml`._**
 
-### General things to keep in mind:
+## 3.  Housekeeping:
 * You must have administrator access to install Docker or Docker Toolbox.
 * You should increase the memory limits to allow the script to run. I recommend 4 GB of RAM and 2 cores. 
 	* For **Windows 7**, open VirtualBox (installed as part of Docker Toolbox) as admin and stop the virtual machine **default** that is running. In settings for the default virtual machine, change the RAM and processor allocation.
@@ -35,13 +35,8 @@ root
 * For enabling shared folders:
 	* In **Windows 10**, you need to enable shared folders in preferences. Right click on the Docker icon in the system tray > settings > shared drives > check appropriate drives > Apply
 	* In **Windows 7**, as before, access the VirutalBox as admin > stop the default virtual machine > go to settings for the virtual machine > Shared Folders > Add as needed
-* In some flavors of **Windows**, there may be an error in mounting a shared drive. If that happens, try the following:
-   * Make sure the path is specified as `//<drive_letter>/<path>`
-   * Make sure the shared drives are enabled and that particular path is shared
-   * Make sure the terminal is running as administrator
 
-
-## 3. Run the script
+## 4. Run the script
  #### 3.1 For macOS and Linux, from the `root` directory, run:
   ```bash
   docker run --interactive --tty --rm \
@@ -80,3 +75,11 @@ output
   `report.html` Sample of report with links
   ![Sample Report](./example_outputs/report.png)
 
+# Troubleshooting:
+* In some flavors of **Windows**, there may be an error in mounting a shared drive. If that happens, try the following:
+   * Make sure the path is specified as `//<drive_letter>/<path>`
+   * Make sure the shared drives are enabled and that particular path is shared
+   * Make sure the terminal is running as administrator
+
+* Docker abruptly stops running the script
+  * Make sure to allocate sufficient RAM and processing power to Docker. Usually, if the virual OS cannot get more memory, it experiences an Out Of Memory (OOM) error and kills the offending process thereby exiting the container.
