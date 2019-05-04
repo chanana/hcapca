@@ -83,3 +83,12 @@ output
 
 * Docker abruptly stops running the script
   * Make sure to allocate sufficient RAM and processing power to Docker. Usually, if the virual OS cannot get more memory, it experiences an Out Of Memory (OOM) error and kills the offending process thereby exiting the container.
+  
+# Wiki
+[Here](https://github.com/chanana/hcapca/wiki) is a link to wiki page which is still under construction.
+
+# License
+This project is licensed under the GNU General Public License v3.0 - please see the [LICENSE.md](LICENSE.md) file for details
+
+# Acknowledgments
+* A huge thank you to Chris Thomas for helping bring this idea to fruition. He does not have a github account so [here is a link](https://www.ncbi.nlm.nih.gov/pubmed/?term=Thomas%5BAuthor%5D%20AND%20Bugni%5BAuthor%5D&cmd=DetailsSearch) to a pubmed search with his publications.
