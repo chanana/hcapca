@@ -91,4 +91,4 @@ output
 This project is licensed under the GNU General Public License v3.0 - please see the [LICENSE.md](LICENSE.md) file for details
 
 # Acknowledgments
-* A huge thank you to Chris Thomas for helping bring this idea to fruition. He does not have a github account so [here is a link](https://www.ncbi.nlm.nih.gov/pubmed/?term=Thomas%5BAuthor%5D%20AND%20Bugni%5BAuthor%5D&cmd=DetailsSearch) to a pubmed search with his publications.
+A huge thank you to Chris Thomas for helping bring this idea to fruition. He does not have a github account so [here is a link](https://www.ncbi.nlm.nih.gov/pubmed/?term=Thomas%5BAuthor%5D%20AND%20Bugni%5BAuthor%5D&cmd=DetailsSearch) to a pubmed search with his publications.
