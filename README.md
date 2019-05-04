@@ -37,14 +37,14 @@ root
 	* In **Windows 7**, as before, access the VirutalBox as admin > stop the default virtual machine > go to settings for the virtual machine > Shared Folders > Add as needed
 
 ## 4. Run the script
- #### 3.1 For macOS and Linux, from the `root` directory, run:
+ #### 4.1 For macOS and Linux, from the `root` directory, run:
   ```bash
   docker run --interactive --tty --rm \
     --volume $(pwd):/hp \
     --workdir /hp \
     schanana/hcapca:1.6 hcapca.R
   ```
- #### 3.2 For Windows 
+ #### 4.2 For Windows 
  On Windows 7, use the `Docker Quickstart Terminal` while on Windows 10, use the `Powershell` **(not x86 or ISE, just Powershell)** and type:
  ```bash
  docker run --interactive --tty --rm \
@@ -52,7 +52,7 @@ root
     --workdir /hp \
     schanana/hcapca:1.6 hcapca.R
  ```
-A folder called `output` should have been created within the `root` directory with the following structure:
+Regardless of OS, a folder called `output` should be created within the `root` directory with the following structure:
 ```
 output
     |--report.html
