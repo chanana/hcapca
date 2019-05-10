@@ -37,14 +37,14 @@ root
 	* In **Windows 7**, as before, access the VirutalBox as admin > stop the default virtual machine > go to settings for the virtual machine > Shared Folders > Add as needed
 
 ## 4. Run the script
- #### 3.1 For macOS and Linux, from the `root` directory, run:
+ #### 4.1 For macOS and Linux, from the `root` directory, run:
   ```bash
   docker run --interactive --tty --rm \
     --volume $(pwd):/hp \
     --workdir /hp \
     schanana/hcapca:1.6 hcapca.R
   ```
- #### 3.2 For Windows 
+ #### 4.2 For Windows 
  On Windows 7, use the `Docker Quickstart Terminal` while on Windows 10, use the `Powershell` **(not x86 or ISE, just Powershell)** and type:
  ```bash
  docker run --interactive --tty --rm \
@@ -52,7 +52,7 @@ root
     --workdir /hp \
     schanana/hcapca:1.6 hcapca.R
  ```
-A folder called `output` should have been created within the `root` directory with the following structure:
+Regardless of OS, a folder called `output` should be created within the `root` directory with the following structure:
 ```
 output
     |--report.html
@@ -83,3 +83,12 @@ output
 
 * Docker abruptly stops running the script
   * Make sure to allocate sufficient RAM and processing power to Docker. Usually, if the virual OS cannot get more memory, it experiences an Out Of Memory (OOM) error and kills the offending process thereby exiting the container.
+  
+# Wiki
+[Here](https://github.com/chanana/hcapca/wiki) is a link to wiki page which is still under construction.
+
+# License
+This project is licensed under the GNU General Public License v3.0 - please see the [LICENSE.md](LICENSE.md) file for details
+
+# Acknowledgments
+A huge thank you to Chris Thomas for helping bring this idea to fruition. He does not have a github account so [here is a link](https://www.ncbi.nlm.nih.gov/pubmed/?term=Thomas%5BAuthor%5D%20AND%20Bugni%5BAuthor%5D&cmd=DetailsSearch) to a pubmed search with his publications.
