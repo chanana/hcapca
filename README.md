@@ -12,7 +12,7 @@
 Install [Docker Community Edition (CE)](https://docs.docker.com/install) for your operating system. For older Mac and Windows systems, you will need to install [Docker Toolbox](https://docs.docker.com/toolbox/overview) instead.
 
 ## 2. Get example data and config file
-Example data and `config_file.yaml` can be found at [this link](https://uwmadison.box.com/s/ky874zpel8kby3yvwzsb1kthqbic9age). Please download and unzip to one place such that your directory structure looks like:  
+Example `data.zip` and `config_file.yaml` can be found at [this link](https://uwmadison.box.com/s/ky874zpel8kby3yvwzsb1kthqbic9age). Please download and unzip to one place such that your directory structure looks like:  
 
 ```
 root
