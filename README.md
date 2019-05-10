@@ -29,7 +29,7 @@ root
 ## 3.  Housekeeping:
 * You must have administrator access to install Docker or Docker Toolbox.
 * You should increase the memory limits to allow the script to run. I recommend 4 GB of RAM and 2 cores. 
-	* For **Windows 7**, open VirtualBox (installed as part of Docker Toolbox) as admin and stop the virtual machine **default** that is running. In settings for the default virtual machine, change the RAM and processor allocation.
+	* For **Windows 7**, open VirtualBox (installed as part of Docker Toolbox) as admin and stop the virtual machine `default` that is running. In settings for `default`, change the RAM and processor allocation.
     * For **Linux**, you don't need to do this since Docker has access to the entire system.
     * For **Windows 10** and **macOS**, open the preferences from the Docker app and increase resources as needed.
 * For enabling shared folders:
