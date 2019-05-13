@@ -37,10 +37,8 @@ dfcolT <- fread(input = parameters$time_table,
                 data.table = F)
 
 # ~~~~~ Fix row and column names ~~~~~
-if (parameters$pattern_needed) {
-  dfrows <-
+dfrows <-
     str_extract(string = dfrows[, 1], pattern = parameters$row_name_pattern)
-}
 
 # check for duplicated rows
 duplicates <- duplicated(dfrows)
