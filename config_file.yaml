@@ -18,12 +18,11 @@ default:
     time_table: "data/Variables_t.dat"
     sample_names: "data/Analyses.dat"
 
-    # Do you need sample name pattern matching?
-    # Accepts: "TRUE" and "FAlSE"
-    pattern_needed: TRUE
-    # Pattern for sample name matching
-    # Accepts regex patterns
+    # Pattern for sample name matching; if you do not need pattern matching,
+    # please enter ".*" as the pattern.
+    # Accepts: regex patterns
     row_name_pattern: "[AB][0-9]{3}"
+
 
     # Generate tree based on number of members or variance of cluster
     # Accepts: "num" or "var"
