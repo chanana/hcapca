@@ -237,10 +237,15 @@ end_time <- Sys.time()
 
 cat("\nTotal time taken to run script:", format(end_time - start_time))
 
-# # ~~~~ Visualize entire tree ~~~~
-# # 1. using ape
-# library(ape)
-# phy <- as.phylo.Node(x = get_tree(master_list))
-# pdf(file=file.path(getwd(), "tree.pdf"), width=11, height=8)
-# plot(phy, label.offset=0.2, no.margin=T, show.node.label=T, adj=1)
-# dev.off()
+if (parameters$run_shiny_app) {
+  suppressMessages(library(shiny))
+  suppressMessages(library(ape))
+  phy <- as.phylo.Node(x = get_tree(master_list))
+  # pdf(file=file.path(getwd(), "tree.pdf"), width=11, height=8)
+  # plot(phy, label.offset=0.2, no.margin=T, show.node.label=T, adj=1)
+  # dev.off()
+  hc <- as.hclust.phylo(x = phy)
+  suppressMessages(library(networkD3))
+  # dendroNetwork(hc)
+  shiny::runApp(appDir = parameters$shiny_app_folder, port = 6900)
+}

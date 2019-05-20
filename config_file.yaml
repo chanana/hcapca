@@ -3,7 +3,8 @@ default:
     # Location of accessory_functions.R (do not change if using docker)
     # if using host system, change to wherever both hcapca.R and 
     # accessory_functions.R are located
-    input_folder_accessory_script: "/script"
+    # input_folder_accessory_script: "/script"
+    input_folder_accessory_script: "~/programming/hcapca/src"
 
     # Directory to store outputs
     output_folder: "output"
@@ -18,10 +19,18 @@ default:
     time_table: "data/Variables_t.dat"
     sample_names: "data/Analyses.dat"
 
+    # Run Shiny App to see results?
+    # Accepts: TRUE/FALSE
+    run_shiny_app: TRUE
+
+    # Shiny App Directory (will be /script for docker)
+    # shiny_app_folder: "/script"
+    shiny_app_folder: "~/programming/hcapca/src"
+
     # Pattern for sample name matching; if you do not need pattern matching,
     # please enter ".*" as the pattern.
     # Accepts: regex patterns
-    row_name_pattern: "[AB][0-9]{3}"
+    row_name_pattern: ".*"
 
 
     # Generate tree based on number of members or variance of cluster

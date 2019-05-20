@@ -384,6 +384,8 @@ make_pca_plot <-
         data = as.data.frame(p$x[, c(axis1, axis2)]),
         x = as.formula(paste0("~PC", axis1)),
         y = as.formula(paste0("~PC", axis2)),
+        type = "scatter",
+        mode = "markers",
         # x = paste0("~PC",axis1), y = paste0("~PC", axis2),
         marker = list(
           size = 10,
@@ -406,6 +408,8 @@ make_pca_plot <-
         data = as.data.frame(loadings),
         x = as.formula(paste0("~PC", axis1)),
         y = as.formula(paste0("~PC", axis2)),
+        type = "scatter",
+        mode = "markers",
         # x = paste0("~PC",plane1), y = paste0("~PC",plane2),
         marker = list(
           size = 10,
