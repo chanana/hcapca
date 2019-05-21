@@ -3,8 +3,8 @@ default:
     # Location of accessory_functions.R (do not change if using docker)
     # if using host system, change to wherever both hcapca.R and 
     # accessory_functions.R are located
-    # input_folder_accessory_script: "/script"
-    input_folder_accessory_script: "~/programming/hcapca/src"
+    input_folder_accessory_script: "/script"
+    #input_folder_accessory_script: "~/programming/hcapca/src"
 
     # Directory to store outputs
     output_folder: "output"
@@ -24,8 +24,8 @@ default:
     run_shiny_app: TRUE
 
     # Shiny App Directory (will be /script for docker)
-    # shiny_app_folder: "/script"
-    shiny_app_folder: "~/programming/hcapca/src"
+    shiny_app_folder: "/script"
+    #shiny_app_folder: "~/programming/hcapca/src"
 
     # Pattern for sample name matching; if you do not need pattern matching,
     # please enter ".*" as the pattern.
