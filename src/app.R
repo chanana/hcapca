@@ -17,6 +17,11 @@ ui <- dashboardPage(
       text = "PCA",
       tabName = "pca",
       icon = icon("desktop")
+    ),
+    menuItem(
+      text = "Exit",
+      icon = icon('power-off'),
+      tabName = "powerOff"
     )
   )),
   #---- Body Content ----
@@ -85,8 +90,8 @@ ui <- dashboardPage(
                 uiOutput(outputId = 'x_axis_placeholder'),
                 uiOutput(outputId = 'y_axis_placeholder'),
                 uiOutput(outputId = 'N_points_placeholder'),
-                uiOutput(outputId = 'make_plots_placeholder'),
-                verbatimTextOutput(outputId = "debug")
+                uiOutput(outputId = 'make_plots_placeholder')#,
+                # verbatimTextOutput(outputId = "debug")
               ),
               column(
                 width = 10,
@@ -108,7 +113,11 @@ ui <- dashboardPage(
                   plotlyOutput("loadings")
                 )
               )
-            ))
+            )),
+    tabItem(
+      tabName = 'powerOff',
+      actionButton(inputId = 'power_off', label = '', icon = icon('power-off'))
+    )
   ))
 )
 
@@ -217,31 +226,21 @@ server <- function(input, output, session) {
       )
     output$make_plots_placeholder <-
       renderUI(
-        box(
-          status = "success",
-          background = "green",
-          collapsible = FALSE,
-          width = NULL,
-          actionButton(
-            inputId = 'make_plots',
-            label = 'Plot',
-            icon(name = 'dog', lib = 'font-awesome')
-          )
-        )
+        actionButton(inputId = 'make_plots', label = 'Plot')
       )
   })
-  output$debug <- renderPrint({
-    # print("input$node_to_plot_tree")
-    # print(input$node_to_plot_tree)
-    print("input$node_to_plot_pca")
-    print(input$node_to_plot_pca)
-    print("input$x_axis")
-    print(input$x_axis)
-    print("input$y_axis")
-    print(input$y_axis)
-    print("N_points")
-    print(input$N_points)
-  })
+  # output$debug <- renderPrint({
+  #   # print("input$node_to_plot_tree")
+  #   # print(input$node_to_plot_tree)
+  #   print("input$node_to_plot_pca")
+  #   print(input$node_to_plot_pca)
+  #   print("input$x_axis")
+  #   print(input$x_axis)
+  #   print("input$y_axis")
+  #   print(input$y_axis)
+  #   print("N_points")
+  #   print(input$N_points)
+  # })
   #---- Calculations for Scores and Loadings ----
   scoresData <- eventReactive(eventExpr = input$make_plots,
                               valueExpr = {
@@ -321,6 +320,9 @@ server <- function(input, output, session) {
   #---- output loadings ----
   output$loadings <- renderPlotly({
     scoresData()$plt_loadings
+  })
+  observeEvent(eventExpr = input$power_off, handlerExpr = {
+    stopApp(1)
   })
 }
 
