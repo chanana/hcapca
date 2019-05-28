@@ -4,6 +4,7 @@
 start_time <- Sys.time()
 
 # Libraries
+cat("\n", "------loading libraries-------", "\n")
 suppressMessages(library(data.table)) # reading data
 suppressMessages(library(stringr)) # parsing row names; regex
 suppressMessages(library(dendextend)) # tree visualization
@@ -11,11 +12,13 @@ suppressMessages(library(data.tree)) # tree visualization 2
 suppressMessages(library(plotly)) # interactive plots
 suppressMessages(library(config)) # config file
 
-cat("\n------loaded libraries-------")
+cat("\n", "------loaded libraries-------", "\n")
 
 # Variables
 parameters <- config::get(file = "config_file.yaml")
 source(file.path(parameters$input_folder_accessory_script, "accessory_functions.R"))
+
+cat("\n", "------reading data-------", "\n")
 
 # Read files
 df <- fread(
@@ -67,8 +70,11 @@ colnames(df) <- dfcol
 
 df <- as.data.frame(df)
 rownames(df) <- dfrows
+save_object(saveDirectory = parameters$save_folder, object = "df")
 
-cat("\n---------read data----------")
+cat("\n", "------read data-------", "\n")
+
+cat("\n", "------calculating pca, hca-------", "\n")
 
 # ~~~~ scale -> distance -> cluster -> dendgrogram -> label ~~~~
 df.s = scale_pareto(df)
@@ -79,16 +85,7 @@ labels(df.dend) <-
   rownames(df)[order.dendrogram(df.dend)] #label each leaf
 df.pca <- prcomp(df.s, center = F, scale. = F) # PCA of all samples
 
-cat("\n----calculated pca, hca-----")
-
-# For debugging purposes
-if (parameters$save_image) {
-  save_points_dir <- file.path(getwd(), "save_points")
-  if (!dir.exists(save_points_dir)) {
-    dir.create(save_points_dir)
-  }
-  save.image(file.path(save_points_dir, "save_point.RData"))
-}
+cat("\n", "------calculated pca, hca-------", "\n")
 
 master_list = list()
 master_list[[1]] <-
@@ -100,31 +97,35 @@ master_list[[1]] <-
     isLeaf = TRUE,
     var = df.pca$sdev ^ 2 / sum(df.pca$sdev ^ 2) * 100
   )
+save_object(saveDirectory = parameters$save_folder, object = "df.pca", objectName = "b_pca")
+
+cat("\n", "------processing tree-------", "\n")
 
 # ~~~~ make entire tree and generate report ~~~~
 process_node(dataframe = df, id = 'b')
 auto_process(
   dataframe = df,
   numOrVar = parameters$numOrVar,
-  N = parameters$N_numOrVar
+  N = parameters$N_numOrVar,
+  saveDirectory = parameters$save_folder
 )
 
-cat("\n-------processed tree--------")
+cat("\n", "------processed tree-------", "\n")
 
 # For debugging purposes
-if (parameters$save_image) {
-  save_points_dir <- file.path(getwd(), "save_points")
-  if (!dir.exists(save_points_dir)) {
-    dir.create(save_points_dir)
-  }
-  save.image(file.path(save_points_dir, "save_point.RData"))
-}
+# if (parameters$save_image) {
+#   save_points_dir <- file.path(getwd(), "save_points")
+#   if (!dir.exists(save_points_dir)) {
+#     dir.create(save_points_dir)
+#   }
+#   save.image(file.path(save_points_dir, "save_point.RData"))
+# }
 
 # Setup Directories; hca; pca
 output_folder_hca <-
   file.path(parameters$output_folder, parameters$output_folder_hca)
 output_folder_pca <-
-  file.path(parameters$output_folder, parameters$output_folder_pca)
+    file.path(parameters$output_folder, parameters$output_folder_pca)
 output_folder_report <-
   file.path(parameters$output_folder)
 
@@ -157,6 +158,8 @@ colors = c(
   "#ffffff"
 ) # 8. white
 
+cat("\n", "------making HCA plots-------", "\n")
+
 # make HCA for each node
 for (node in nodeNames) {
   n <- get_node_position(node)
@@ -172,7 +175,7 @@ for (node in nodeNames) {
   }
 }
 
-cat("\n-------made HCA plots-------")
+cat("\n", "-------made HCA plots-------", "\n")
 
 # add combined_path
 for (node in nodeNames) {
@@ -198,23 +201,28 @@ for (node in nodeNames) {
     master_list[[n]]$var <- 0
   }
 }
+save_object(saveDirectory = parameters$save_folder, object = "colors")
+save_object(saveDirectory = parameters$save_folder, object = "master_list")
 
 # Make pca html for everything (pc1 vs pc2)
-for (node in nodeNames) {
-  n <- get_node_position(node)
-  if (length(master_list[[n]]$members) < 3) {
-    print("Two or fewer members; skipping...")
-    next
-  } else {
-    make_pca_html(
-      nodeName = node,
-      dataframe = df,
-      outfile = output_folder_pca,
-      max_points_loadings = parameters$max_points_loadings
-    )
+if (parameters$output_pca) {
+  cat("\n", "-------making PCA plots-------", "\n")
+  for (node in nodeNames) {
+    n <- get_node_position(node)
+    if (length(master_list[[n]]$members) < 3) {
+      print("Two or fewer members; skipping...")
+      next
+    } else {
+      make_pca_html(
+        nodeName = node,
+        dataframe = df,
+        outfile = output_folder_pca,
+        max_points_loadings = parameters$max_points_loadings
+      )
+    }
   }
+  cat("\n", "-------made PCA plots-------", "\n")
 }
-cat("\n-------made PCA plots-------")
 
 # make the report
 default_options <- sapply(
@@ -231,22 +239,14 @@ sink()
 options(width = default_options[1],
         max.print = default_options[2])
 
-cat("\n------Report Generated------")
+cat("\n", "-------Generated report.html-------", "\n")
 
 end_time <- Sys.time()
 
-cat("\nTotal time taken to run script:", format(end_time - start_time))
+cat("\n", "Total time taken to run script:", format(end_time - start_time), ".\n")
 
-if (parameters$run_shiny_app) {
-  suppressMessages(library(shiny))
-  suppressMessages(library(ape))
-  phy <- as.phylo.Node(x = get_tree(master_list))
-  # pdf(file=file.path(getwd(), "tree.pdf"), width=11, height=8)
-  # plot(phy, label.offset=0.2, no.margin=T, show.node.label=T, adj=1)
-  # dev.off()
-  hc <- as.hclust.phylo(x = phy)
-  suppressMessages(library(networkD3))
-  # dendroNetwork(hc)
-  shiny::runApp(appDir = parameters$shiny_app_folder, port = 6900, quiet = F)
-}
-library(collapsibleTree)
+# phy <- as.phylo.Node(x = get_tree(master_list))
+# pdf(file=file.path(getwd(), "tree.pdf"), width=11, height=8)
+# plot(phy, label.offset=0.2, no.margin=T, show.node.label=T, adj=1)
+# dev.off()
+# hc <- as.hclust.phylo(x = phy)

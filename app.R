@@ -1,13 +1,39 @@
-## app2.R ##
-library(shiny)
-library(shinydashboard)
-library(plotly)
+#!/usr/bin/env Rscript
+suppressMessages(library(shiny)) # shiny
+suppressMessages(library(config)) # config file
+suppressMessages(library(data.tree))
+suppressMessages(library(collapsibleTree)) # collapsible Trees
+suppressMessages(library(shinydashboard))
+suppressMessages(library(dendextend))
+suppressMessages(library(stringr))
+suppressMessages(library(plotly))
+
+# load configuration and functions
+parameters <- config::get(file = "config_file.yaml")
+source(file.path(
+  parameters$input_folder_accessory_script,
+  "accessory_functions.R"
+), local=TRUE)
+
+# load master_list (list of nodes with dendrograms)
+master_list <-
+  readRDS(file = file.path(parameters$save_folder, "master_list_obj.RDS"))
+nodeNames <- unlist(lapply(master_list, `[[`, "ID"))
+colors <- readRDS(file = file.path(parameters$save_folder, "colors_obj.RDS"))
+pca_objects <- list.files(path = file.path(parameters$save_folder), pattern = "pca", full.names = T)
+pca_objects_str <- str_extract(string = pca_objects, pattern = "b[01]*")
+
 #---- UI ----
 ui <- dashboardPage(
   skin = "black",
   header = dashboardHeader(title = "hcapca", titleWidth = 100),
   #---- Sidebar content ----
   sidebar = dashboardSidebar(width = 100, sidebarMenu(
+    menuItem(
+      text = "Info",
+      tabName = "info",
+      icon = icon("info")
+    ),
     menuItem(
       text = "Tree",
       tabName = "tree",
@@ -26,14 +52,23 @@ ui <- dashboardPage(
   )),
   #---- Body Content ----
   body = dashboardBody(tabItems(
-    #---- First Tab ----
+    #---- info Tab ----
+    tabItem(tabName='info',
+            fluidRow(
+              box(
+                title = "instructions",
+                solidHeader = T,status = "info", width = 12
+              )
+            )
+    ),
+    #---- tree Tab ----
     tabItem(tabName = "tree",
             fluidRow(
               box(
                 title = "Overall Tree",
                 solidHeader = T,
                 status = "info",
-                dendroNetworkOutput(outputId = 'dendroNetwork'),
+                collapsibleTreeOutput(outputId = 'collapsibleTree'),
                 width = 12
               )
             ),
@@ -49,26 +84,25 @@ ui <- dashboardPage(
                   selectInput(
                     inputId = "node_to_plot_tree",
                     label = "Select Node to View Dendrogram",
-                    choices = c("None", nodeNames),
-                    selected = "None"
+                    choices = nodeNames,
+                    selected = "b"
                   )
                 )
-
               ),
               column(
                 width = 10,
                 box(
                   id = 'nodeBox',
-                  title = paste0("Dendrogram"),
-                  status = "warning",
+                  title = "Dendrogram",
+                  status = "info",
                   solidHeader = TRUE,
                   collapsible = FALSE,
                   width = NULL,
-                  dendroNetworkOutput(outputId = 'node')
+                  plotOutput(outputId = 'node')
                 )
               )
             )),
-    #---- Second tab ----
+    #---- pca tab ----
     tabItem(tabName = 'pca',
             fluidRow(
               column(
@@ -83,14 +117,15 @@ ui <- dashboardPage(
                   selectInput(
                     inputId = "node_to_plot_pca",
                     label = "Select Node to View PCA",
-                    choices = c("None", nodeNames),
+                    choices = c("None",nodeNames),
                     selected = "None"
                   )
                 ),
                 uiOutput(outputId = 'x_axis_placeholder'),
                 uiOutput(outputId = 'y_axis_placeholder'),
                 uiOutput(outputId = 'N_points_placeholder'),
-                uiOutput(outputId = 'make_plots_placeholder')#,
+                uiOutput(outputId = 'make_plots_placeholder'),
+                infoBoxOutput(outputId = 'pc1_pc2')
                 # verbatimTextOutput(outputId = "debug")
               ),
               column(
@@ -111,9 +146,18 @@ ui <- dashboardPage(
                   collapsible = FALSE,
                   width = NULL,
                   plotlyOutput("loadings")
+                ),
+                box(
+                  title = "Individual and Cumulative Variance",
+                  status = "info",
+                  solidHeader = TRUE,
+                  collapsible = FALSE,
+                  width = NULL,
+                  plotlyOutput("variance")
                 )
               )
             )),
+    # poweroff tab
     tabItem(
       tabName = 'powerOff',
       actionButton(inputId = 'power_off', label = '', icon = icon('power-off'))
@@ -124,37 +168,35 @@ ui <- dashboardPage(
 #---- Server functions ----
 server <- function(input, output, session) {
   #---- 1. Tree Stuff ----
-  # overall tree
-  output$dendroNetwork <- renderDendroNetwork({
-    dendroNetwork(
-      hc = hc,
-      fontSize = 20,
-      # nodeColour = colors[3],
-      nodeStroke = colors[3],
-      linkColour = colors[4],
-      opacity = 100
-    )
+
+  # overall tree - first box; tree tab
+  output$collapsibleTree <- renderCollapsibleTree({
+    collapsibleTree(df = get_tree(master_list), fontSize = 20)
   })
 
+  # reactive for plotting dendrogram based on selected node; tree tab
   dendro <- reactive({
-    if (input$node_to_plot_tree != "None") {
       dend <-
         master_list[[get_node_position(input$node_to_plot_tree)]]$dend
-      dend <- as.hclust(dend)
       return(dend)
-    }
-    else
-      return()
   })
 
-  output$node <- renderDendroNetwork({
-    dendroNetwork(
-      hc = dendro(),
-      fontSize = 20,
-      # nodeColour = colors[1],
-      nodeStroke = colors[1],
-      linkColour = colors[4]
-    )
+  # plot of dendrogram; tree tab
+  output$node <- renderPlot({
+    par(bg = colors[6], fg = colors[4])
+    d <- dendro()
+    d %>%
+      # dendextend::set("branches_lwd", 2) %>%
+      color_branches(k = 2, col = colors[c(1, 3)]) %>%
+      hang.dendrogram %>%
+      plot(panel.first = {
+        grid(
+          col = colors[8],
+          lty = 3,
+          nx = NA,
+          ny = NULL
+        )
+      })
   })
 
   #---- 2. PCA stuff ----
@@ -217,7 +259,7 @@ server <- function(input, output, session) {
           numericInput(
             inputId = "N_points",
             label = "Points on Loadings Plot",
-            value = 1000,
+            value = parameters$max_points_loadings,
             min = 50,
             max = 10000,
             step = 50
@@ -242,17 +284,12 @@ server <- function(input, output, session) {
   #   print(input$N_points)
   # })
   #---- Calculations for Scores and Loadings ----
-  scoresData <- eventReactive(eventExpr = input$make_plots,
+  pcaData <- eventReactive(eventExpr = input$make_plots,
                               valueExpr = {
-                                # Get pca
-                                n <-
-                                  get_node_position(input$node_to_plot_pca)
-                                df <-
-                                  remove_zeros(df[master_list[[n]]$members, ])
-                                df.s <-
-                                  scale_pareto(df) # pareto scaled data
-                                pca <-
-                                  prcomp(df.s, scale. = F, center = F)
+                                # Get pca object from file
+                                position <- match(x = input$node_to_plot_pca,
+                                                  table = pca_objects_str)
+                                pca <- readRDS(file = pca_objects[position])
 
                                 xaxis <- as.numeric(input$x_axis)
                                 yaxis <- as.numeric(input$y_axis)
@@ -282,6 +319,7 @@ server <- function(input, output, session) {
                                   hoverinfo = 'text',
                                   text = ~ rownames(df_loadings)
                                 ) %>% layout(title = paste0('Loadings Plot: PC', input$x_axis, ' v PC', input$y_axis))
+
                                 #---- Scores ----
                                 df_scores <-
                                   data.frame(pca$x[, c(xaxis, yaxis)])
@@ -302,28 +340,58 @@ server <- function(input, output, session) {
                                     text = ~ rownames(df_scores)
                                   ) %>% layout(title = paste0('Loadings Plot: PC', input$x_axis, ' v PC', input$y_axis))
 
+                                #---- Variance ----
+                                proportion_of_variance <- summary(pca)$importance[2,]*100
+                                cumulative_proportion <- summary(pca)$importance[3,]*100
+                                xaxis <- 1:length(proportion_of_variance)
+
+                                plt_variance <-
+                                  plot_ly(
+                                    data = data.frame(cumulative_proportion),
+                                    type = 'scatter',
+                                    mode='lines+markers',
+                                    x = xaxis,
+                                    y = cumulative_proportion,
+                                    hoverinfo = 'text',
+                                    text = ~ paste0("</br> PC", xaxis,
+                                                   "</br>Explains: ", proportion_of_variance, "%",
+                                                   "</br>Cumulative: ", cumulative_proportion, "%")
+                                  ) %>% layout(title = "Cumulative Variance")
+
+
                                 return(
                                   list(
                                     'pca' = pca,
                                     'df_scores' = df_scores,
                                     'df_loadings' = df_loadings,
+                                    'pc1_pc2' = cumulative_proportion[2],
                                     'colnames' = c(colnames(df_loadings)),
                                     'plt_scores' = plt_scores,
-                                    'plt_loadings' = plt_loadings
+                                    'plt_loadings' = plt_loadings,
+                                    'plt_variance' = plt_variance
                                   )
                                 )
                               })
   #---- output scores ----
   output$scores <- renderPlotly({
-    scoresData()$plt_scores
+    pcaData()$plt_scores
   })
   #---- output loadings ----
   output$loadings <- renderPlotly({
-    scoresData()$plt_loadings
+    pcaData()$plt_loadings
   })
+  #---- output cumulative variance ----
+  output$variance <- renderPlotly({
+    pcaData()$plt_variance
+  })
+  #---- output pc1+pc2 ----
+  output$pc1_pc2 <- renderInfoBox({
+    infoBox(title = "PC1 + PC2", value = pcaData()$pc1_pc2, icon = icon('info'), color = 'green', fill = T)
+  })
+  #---- Power Button ----
   observeEvent(eventExpr = input$power_off, handlerExpr = {
     stopApp(1)
   })
 }
 
-shinyApp(ui, server)
+shinyApp(ui = ui, server = server)

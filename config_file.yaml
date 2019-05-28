@@ -3,14 +3,20 @@ default:
     # Location of accessory_functions.R (do not change if using docker)
     # if using host system, change to wherever both hcapca.R and 
     # accessory_functions.R are located
-    input_folder_accessory_script: "/script"
-    #input_folder_accessory_script: "~/programming/hcapca/src"
+    input_folder_accessory_script: "."
+    # input_folder_accessory_script: "~/programming/test_hcap"
 
     # Directory to store outputs
     output_folder: "output"
 
     # Will be created inside directory "output_folder"
     output_folder_hca: "hca"
+
+    # save PCAs as separate files
+    # Accepts: TRUE, FALSE
+    output_pca: FALSE
+
+    # output directory for pca, ignored if output_pca is FALSE
     output_folder_pca: "pca"
 
     # Input table locations
@@ -19,13 +25,12 @@ default:
     time_table: "data/Variables_t.dat"
     sample_names: "data/Analyses.dat"
 
+    # Save directory for objects
+    save_folder: "save_points"
+    
     # Run Shiny App to see results?
-    # Accepts: TRUE/FALSE
+    # Accepts: TRUE, FALSE
     run_shiny_app: TRUE
-
-    # Shiny App Directory (will be /script for docker)
-    shiny_app_folder: "/script"
-    #shiny_app_folder: "~/programming/hcapca/src"
 
     # Pattern for sample name matching; if you do not need pattern matching,
     # please enter ".*" as the pattern.
@@ -39,13 +44,9 @@ default:
 
     # The cut-off value for either setting from above
     # Accepts: any positive rational number
-    N_numOrVar: 20
+    N_numOrVar: 30
 
     # The number of maximum points to display on a loadings plot
     # use this if script gets killed because of OOM (Out of Memory)
     max_points_loadings: 5000
-
-    # Save image after computing overall PCA, HCA
-    # Accepts: True, False, and all these https://yaml.org/type/bool.html
-    save_image: TRUE
 ... 

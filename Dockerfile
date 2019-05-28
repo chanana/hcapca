@@ -1,11 +1,13 @@
-ARG VERSION=3.5.2
-FROM rocker/tidyverse:${VERSION}
+FROM rocker/shiny-verse:3.5.2
 
-# Install extra libraries
-RUN echo 'install.packages(c("dendextend", "data.table", "data.tree", "plotly", "config","ape","shinydashboard","networkD3"))' > /tmp/packages.R && Rscript /tmp/packages.R
+RUN install2.r --error \
+  collapsibleTree \
+  config \
+  data.table \
+  data.tree \
+  dendextend \
+  plotly \
+  shinydashboard
 
-# Location of scripts inside container: /script/
-COPY "./src/*.R" "/script/"
-
-# Add scripts to PATH
-ENV PATH=$PATH:/script
+#COPY *.R /srv/shiny-server/hcapca/
+#RUN chmod 
