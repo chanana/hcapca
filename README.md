@@ -11,33 +11,38 @@
 ## 1. Install Docker
 Install [Docker Community Edition (CE)](https://docs.docker.com/install) for your operating system. For older Mac and Windows systems, you will need to install [Docker Toolbox](https://docs.docker.com/toolbox/overview) instead.
 
-## 2. Get example data and config file
-Example `data.zip` and `config_file.yaml` can be found at [this link](https://uwmadison.box.com/s/ky874zpel8kby3yvwzsb1kthqbic9age). Please download and unzip to one place such that your directory structure looks like:  
-
+## 2. Get example data, scripts, and config file
+Example `data`, `R scripts`, and `config_file.yaml` can be found at [this link](). Please download and unzip to one place such that your directory structure looks like:  
+<!-- TODO: make link for all of these-->
 ```
-root
+base
   |--config_file.yaml
+  |--hcapca.R
+  |--accessory_functions.R
+  |--app.R
   |--data
       |--Analyses.dat
       |--Variables_m.dat
       |--Variables_t.dat
       |--Table.dat
 ```
+You can use your own data instead of example data here. Currently, the format of each file must be followed as shown in example data. More information at the wiki.
+<!-- TODO: link to the wiki -->
+**_Note: The <span style="color:blue">`base`</span> directory is where you unzip the `data` folder, the `R scripts`, and `config_file.yaml`._**
 
-**_Note: The <span style="color:blue">`root`</span> directory is where you unzip the `data` folder and `config_file.yaml`._**
 
 ## 3.  Housekeeping:
 * You must have administrator access to install Docker or Docker Toolbox.
-* You should increase the memory limits to allow the script to run. I recommend 4 GB of RAM and 2 cores. 
-	* For **Windows 7**, open VirtualBox (installed as part of Docker Toolbox) as admin and stop the virtual machine `default` that is running. In settings for `default`, change the RAM and processor allocation.
-    * For **Linux**, you don't need to do this since Docker has access to the entire system.
+* You should increase the memory limits to allow the script to run. I recommend 4 GB of RAM and 2 cores to run the example data. 
+	* For **Windows 7**, open VirtualBox (installed as part of Docker Toolbox) from Start Menu as admin and stop the virtual machine `default` that is running. In settings for `default`, change the RAM and processor allocation.
+    * For **Linux**, you don't need to do this since Docker has access to the entire system's resources.
     * For **Windows 10** and **macOS**, open the preferences from the Docker app and increase resources as needed.
 * For enabling shared folders:
 	* In **Windows 10**, you need to enable shared folders in preferences. Right click on the Docker icon in the system tray > settings > shared drives > check appropriate drives > Apply
 	* In **Windows 7**, as before, access the VirutalBox as admin > stop the default virtual machine > go to settings for the virtual machine > Shared Folders > Add as needed
 
 ## 4. Run the script to process data
- #### 4.1 For macOS and Linux, from the `root` directory, run:
+ #### 4.1 For macOS and Linux, from the `base` directory, run:
   ```bash
   docker run --interactive --tty --rm \
     --volume $(pwd):/srv/shiny-server/hcapca \
@@ -48,11 +53,11 @@ root
  On Windows 7, use the `Docker Quickstart Terminal` while on Windows 10, use the `Powershell` **(not x86 or ISE, just Powershell)** and type:
  ```bash
  docker run --interactive --tty --rm \
-    --volume //c/Users/username/path/to/root/directory:/srv/shiny-server/hcapca
+    --volume //c/Users/username/path/to/base/directory:/srv/shiny-server/hcapca
     --workdir /srv/shiny-server/hcapca \
     schanana/hcapca:latest hcapca.R
  ```
-Regardless of OS, a folder called `output` should be created within the `root` directory with the following structure:
+Regardless of OS, a folder called `output` should be created within the `base` directory with the following structure:
 ```
 output
     |--report.html
@@ -76,10 +81,12 @@ docker run --rm -it --name hcapca \
  On Windows 7, use the `Docker Quickstart Terminal` while on Windows 10, use the `Powershell` **(not x86 or ISE, just Powershell)** and type:
  ```bash
  docker run --interactive --tty --rm \
-    --volume //c/Users/username/path/to/root/directory:/srv/shiny-server/hcapca
+    --volume //c/Users/username/path/to/base/directory:/srv/shiny-server/hcapca
     --workdir /srv/shiny-server/hcapca \
     schanana/hcapca:latest hcapca.R
  ```
+Navigate to http://127.0.0.1:3838/hcapca to view your results in an interactive website!
+
   # Example outputs
   ##### 1. HCA
   `b0-15.pdf` HCA of node b0 with 15 samples  
