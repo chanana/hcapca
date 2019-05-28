@@ -36,13 +36,13 @@ root
 	* In **Windows 10**, you need to enable shared folders in preferences. Right click on the Docker icon in the system tray > settings > shared drives > check appropriate drives > Apply
 	* In **Windows 7**, as before, access the VirutalBox as admin > stop the default virtual machine > go to settings for the virtual machine > Shared Folders > Add as needed
 
-## 4. Run the script
+## 4. Run the script to process data
  #### 4.1 For macOS and Linux, from the `root` directory, run:
   ```bash
   docker run --interactive --tty --rm \
     --volume $(pwd):/hp \
     --workdir /hp \
-    schanana/hcapca:1.6 hcapca.R
+    schanana/hcapca:latest hcapca.R
   ```
  #### 4.2 For Windows 
  On Windows 7, use the `Docker Quickstart Terminal` while on Windows 10, use the `Powershell` **(not x86 or ISE, just Powershell)** and type:
@@ -50,7 +50,7 @@ root
  docker run --interactive --tty --rm \
     --volume //c/Users/username/path/to/root/directory:/hp
     --workdir /hp \
-    schanana/hcapca:1.6 hcapca.R
+    schanana/hcapca:latest hcapca.R
  ```
 Regardless of OS, a folder called `output` should be created within the `root` directory with the following structure:
 ```
@@ -63,7 +63,14 @@ output
         |--names_with_underscores.html
         |--directories_with_the_same_names
 ```
-  
+#### 4.3 Explore results
+```shell
+docker run --rm -it --name hcapca \
+   --volume $(pwd):/srv/shiny-server/hcapca \
+   --workdir /srv/shiny-server/hcapca/ \
+   -p 3838:3838 \
+   schanana/hcapca:latest
+```
   # Example outputs
   ##### 1. HCA
   `b0-15.pdf` HCA of node b0 with 15 samples  

@@ -4,7 +4,6 @@ default:
     # if using host system, change to wherever both hcapca.R and 
     # accessory_functions.R are located
     input_folder_accessory_script: "."
-    # input_folder_accessory_script: "~/programming/test_hcap"
 
     # Directory to store outputs
     output_folder: "output"
