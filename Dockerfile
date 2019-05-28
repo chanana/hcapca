@@ -9,5 +9,4 @@ RUN install2.r --error \
   plotly \
   shinydashboard
 
-#COPY *.R /srv/shiny-server/hcapca/
-#RUN chmod 
+ENV PATH="/srv/shiny-server/hcapca:${PATH}"

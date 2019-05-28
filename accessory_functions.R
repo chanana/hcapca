@@ -229,7 +229,7 @@ process_node <- function(dataframe = df, id) {
   df.dend <- as.dendrogram(df.clust) # as dendrogram object
   labels(df.dend) <-
     rownames(df)[order.dendrogram(df.dend)] # labels
-  cat("\n", "[2/4] selected and processed data and made dendrogram")
+  cat(paste0("\n", "[2/4] selected and processed data and made dendrogram"))
 
   # partition into two clusters
   membership <- cutree_1k.dendrogram(dend = df.dend, k = 2)
