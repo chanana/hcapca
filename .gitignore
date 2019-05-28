@@ -3,6 +3,7 @@ data/
 output/
 save_points/
 src/*
+shinylog/*
 
 # zip files
 *.zip
