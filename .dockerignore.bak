@@ -1,8 +1,0 @@
-#ignores everything
-*
-
-#except
-!src/hcapca.R
-!src/accessory_functions.R
-!src/app.R
-!config_file.yaml

@@ -1,6 +1,2 @@
 #ignores everything
 *
-
-#except
-!src/test.R
-!src/app.R
