@@ -12,7 +12,7 @@
 Install [Docker Community Edition (CE)](https://docs.docker.com/install) for your operating system. For older Mac and Windows systems, you will need to install [Docker Toolbox](https://docs.docker.com/toolbox/overview) instead.
 
 ## 2. Get example data, scripts, and config file
-Example `data`, `R scripts`, and `config_file.yaml` can be found at [this link](). Please download and unzip to one place such that your directory structure looks like:  
+Example `data`, `R scripts`, and `config_file.yaml` can be found at [this link](https://uwmadison.box.com/v/schanana-hcapca). Please download and unzip to one place such that your directory structure looks like:  
 <!-- TODO: make link for all of these-->
 ```
 base
@@ -111,7 +111,8 @@ Navigate to http://127.0.0.1:3838/hcapca to view your results in an interactive 
 [Here](https://github.com/chanana/hcapca/wiki) is a link to wiki page which is still under construction.
 
 # License
-This project is licensed under the GNU General Public License v3.0 - please see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the [GNU General Public License v3.0](https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3)) - please see the [LICENSE.md](LICENSE.md) file for full license.
 
 # Acknowledgments
-A huge thank you to Chris Thomas for helping bring this idea to fruition. He does not have a github account so [here is a link](https://www.ncbi.nlm.nih.gov/pubmed/?term=Thomas%5BAuthor%5D%20AND%20Bugni%5BAuthor%5D&cmd=DetailsSearch) to a pubmed search with his publications.
+A huge thank you to Chris Thomas for helping bring this idea to fruition by being a wall to bounce off ideas. He does not have a github account so [here is a link](https://www.ncbi.nlm.nih.gov/pubmed/?term=Thomas%5BAuthor%5D%20AND%20Bugni%5BAuthor%5D&cmd=DetailsSearch) to a pubmed search with his publications.
+Another shoutout goes to [@WiscEvan](https://github.com/WiscEvan) for helping figure out bits and pieces of code here and there especially with the shiny UX.
