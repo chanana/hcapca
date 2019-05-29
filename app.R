@@ -56,8 +56,11 @@ ui <- dashboardPage(
     tabItem(tabName='info',
             fluidRow(
               box(
-                title = "instructions",
-                solidHeader = T,status = "info", width = 12
+                title = "",
+                solidHeader = F,
+                status = "success",
+                width = 12,
+                includeHTML("text/Instructions2.html")
               )
             )
     ),
@@ -65,11 +68,19 @@ ui <- dashboardPage(
     tabItem(tabName = "tree",
             fluidRow(
               box(
+                title = "What is HCA?", solidHeader = F, status = 'success', width=12,
+                includeHTML("text/1.1 Overall Tree.html")
+              ),
+              box(
                 title = "Overall Tree",
                 solidHeader = T,
                 status = "info",
                 collapsibleTreeOutput(outputId = 'collapsibleTree'),
                 width = 12
+              ),
+              box(
+                title = "Dendrogram", solidHeader = F, status = 'success', width=12,
+                includeHTML("text/1.2 Dendrogram.html")
               )
             ),
             fluidRow(
@@ -105,6 +116,12 @@ ui <- dashboardPage(
     #---- pca tab ----
     tabItem(tabName = 'pca',
             fluidRow(
+              box(
+                title = "Selecting Parameters", solidHeader = F, status = 'success', width=12,
+                includeHTML("text/2.1 Parameters.html")
+              )
+            ),
+            fluidRow(
               column(
                 width = 2,
                 #---- Column 1 ----
@@ -132,6 +149,13 @@ ui <- dashboardPage(
                 width = 10,
                 #---- Column 2 ----
                 box(
+                  title = "Scores Plot",
+                  solidHeader = F,
+                  status = 'success',
+                  width=NULL,
+                  includeHTML("text/2.2 Scores Plot.html")
+                ),
+                box(
                   title = "Scores",
                   status = "info",
                   solidHeader = TRUE,
@@ -140,12 +164,26 @@ ui <- dashboardPage(
                   plotlyOutput("scores")
                 ),
                 box(
+                  title = "Loadings Plot",
+                  solidHeader = F,
+                  status = 'success',
+                  width=NULL,
+                  includeHTML("text/2.3 Loadings Plot.html")
+                ),
+                box(
                   title = "Loadings",
                   status = "info",
                   solidHeader = TRUE,
                   collapsible = FALSE,
                   width = NULL,
                   plotlyOutput("loadings")
+                ),
+                box(
+                  title = "Variance",
+                  solidHeader = F,
+                  status = 'success',
+                  width=NULL,
+                  includeHTML("text/2.4 Cumulative and Individual Variance.html")
                 ),
                 box(
                   title = "Individual and Cumulative Variance",
@@ -160,7 +198,16 @@ ui <- dashboardPage(
     # poweroff tab
     tabItem(
       tabName = 'powerOff',
-      actionButton(inputId = 'power_off', label = '', icon = icon('power-off'))
+      fluidRow(
+        box(
+          title = "Exit",
+          solidHeader = F,
+          status = 'success',
+          width=4,
+          includeHTML("text/3. Exit.html")
+        ),
+        actionButton(inputId = 'power_off', label = '', icon = icon('power-off'))
+      )
     )
   ))
 )

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+        <title>Instructions</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        <link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        <script src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+    </head>
+    <body>
+        <h1 id="instructions">Instructions</h1>
+<p>Congrautulations! You successfully ran <code>hcapca</code> on your data. Now you can look at it interactively. This brief tutorial will take you through how to interpret the tabs on the left.</p>
+<h2 id="1-hca-insert-icon">1. HCA insert icon</h2>
+<p>Hierarchical Clustering Analysis (HCA) of your data was done repeatedly until the given variance cutoff was met. This means we started with your entire dataset, clustered it, broke it into the top two clusters, and repeated that process until that variance cutoff was reached.</p>
+<h4 id="11-overall-tree">1.1 Overall Tree</h4>
+<p>The following is an interactive tree that starts out at base node <code>b</code> and breaks up into <code>b0</code> and <code>b1</code>. These nodes further break up until the variance cutoff is reached for that node.
+Nodes with filled circles can be expanded further by clicking on them.</p>
+<h4 id="12-dendrogram-of-selected-node">1.2 Dendrogram of Selected Node</h4>
+<p>Select a node from the drop down menu in order to view the samples present in it.</p>
+<h2 id="2-pca-insert-icon">2. PCA insert icon</h2>
+<p>Principal Component Analysis (PCA) of each terminal node (nodes with no more child nodes) was performed to generate a model of the variance at that node. This allows you to determine which samples and molecules contribute to the overall variance the most.</p>
+<h4 id="21-parameters">2.1 Parameters</h4>
+<p>Once you have selected a node, three more menus will appear asking you to select the <code>X</code> and <code>Y</code> axes as well as the <code>total number of molecules</code> you'd like to see on the loadings plot. We recommend rendering no more than 10000 molecules since it tends to slow things down <em>considerably</em>. Each axis represents a different combination of factors responsible for the overall variance in the samples present in the selected node. For a further discussion on PCA, we encourage you to read <a href="https://doi.org/10.1038/nmeth.4346">this excellent resource</a>.</p>
+<h4 id="22-scores-plot">2.2 Scores Plot</h4>
+<p>Upon selecting your parameters and clicking on <code>Plot</code>, you will be presented with three plots, the first of which is the <code>Scores</code> plot. This shows you which samples are responsible for the variance seen in your data.</p>
+<h4 id="23-loadings-plot">2.3 Loadings Plot</h4>
+<p>Geometrically related to the <code>Scores</code> plot is the <code>Loadings</code> plot. Each point on the plot is a molecule with an <code>m/z</code> value and a <code>retention time</code> or <code>rt</code> shown as <code>m/z_rt</code>.</p>
+<h4 id="24-individual-and-cumulative-variance">2.4 Individual and Cumulative Variance</h4>
+<p>This plot shows how much variance each principal component (PC) is responsible for as well as the overall cumulative variance which sums to 100% for all of the PCs. As you select a node further down in the tree, PC1 and PC2 explain more and more of the total variance for that node.</p>
+<h2 id="3-exit-insert-icon">3. Exit insert icon</h2>
+<p>Pressing the exit button will shut down the app.</p>
+
+    </body>
+    </html>

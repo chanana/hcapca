@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  </head>
+  <body>
+      <h1 id="info"> <i class="fa fa-info"></i> &ensp; Instructions</h1>
+
+      <p>Congrautulations! You successfully ran <code>hcapca</code> on your data. Now you can look at it interactively. This brief tutorial will take you through how to interpret the tabs on the left.</p>
+      
+      <h2 id="hca"> <i class="fa fa-tree"></i> &ensp; HCA </h2>
+      
+      <p>Hierarchical Clustering Analysis (HCA) of your data was done repeatedly until the given variance cutoff was met. This means we started with your entire dataset, clustered it, broke it into the top two clusters, and repeated that process until that variance cutoff was reached.</p>
+      
+      <h2 id="pca"> <i class="fa fa-desktop"></i> &ensp; PCA </h2>
+      
+      <p>Principal Component Analysis (PCA) of each terminal node (nodes with no more child nodes) was performed to generate a model of the variance at that node. This allows you to determine which samples and molecules contribute to the overall variance the most.</p>
+      
+      <h2 id="exit"> <i class="fa fa-power-off"></i> &ensp; Exit </h2>
+      
+      <p>Pressing the exit button will shut down the app.</p>
+  </body>
+</html>
