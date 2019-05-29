@@ -12,8 +12,8 @@
 Install [Docker Community Edition (CE)](https://docs.docker.com/install) for your operating system. For older Mac and Windows systems, you will need to install [Docker Toolbox](https://docs.docker.com/toolbox/overview) instead.
 
 ## 2. Get example data, scripts, and config file
-Example `data`, `R scripts`, and `config_file.yaml` can be found at [this link](https://uwmadison.box.com/v/schanana-hcapca). Please download and unzip to one place such that your directory structure looks like:  
-<!-- TODO: make link for all of these-->
+Example `data`, `R scripts`, and `config_file.yaml` can be found at [this link](https://uwmadison.box.com/v/schanana-hcapca). Please download and unzip to one place such that your directory structure looks like:
+
 ```
 base
   |--config_file.yaml
@@ -26,10 +26,8 @@ base
       |--Variables_t.dat
       |--Table.dat
 ```
-You can use your own data instead of example data here. Currently, the format of each file must be followed as shown in example data. More information at the wiki.
-<!-- TODO: link to the wiki -->
-**_Note: The <span style="color:blue">`base`</span> directory is where you unzip the `data` folder, the `R scripts`, and `config_file.yaml`._**
-
+You can use your own data instead of example data here. The format of each file must be like the example data.  
+_Note: The <b><span style="color:blue">`base`</span></b> directory is where you unzip the `data` folder, `R scripts`, and `config_file.yaml`._
 
 ## 3.  Housekeeping:
 * You must have administrator access to install Docker or Docker Toolbox.
@@ -37,55 +35,100 @@ You can use your own data instead of example data here. Currently, the format of
 	* For **Windows 7**, open VirtualBox (installed as part of Docker Toolbox) from Start Menu as admin and stop the virtual machine `default` that is running. In settings for `default`, change the RAM and processor allocation.
     * For **Linux**, you don't need to do this since Docker has access to the entire system's resources.
     * For **Windows 10** and **macOS**, open the preferences from the Docker app and increase resources as needed.
-* For enabling shared folders:
-	* In **Windows 10**, you need to enable shared folders in preferences. Right click on the Docker icon in the system tray > settings > shared drives > check appropriate drives > Apply
-	* In **Windows 7**, as before, access the VirutalBox as admin > stop the default virtual machine > go to settings for the virtual machine > Shared Folders > Add as needed
+* You must enable shared folders:
+	* In **Windows 10**, you need to enable shared folders in preferences. Right click on the Docker icon in the system tray **>** settings **>** shared drives **>** check appropriate drives **>** Apply
+	* In **Windows 7**, as before, access the VirutalBox as admin **>** stop the default virtual machine **>** go to settings for the virtual machine **>** Shared Folders **>** Add as needed
+* For **Windows 7** please make a note of the IP address that is displayed when you first start the `Docker Quickstart Terminal`. Usually it is similar to `192.168.99.100`. This will be important in step 5 below.
 
 ## 4. Run the script to process data
- #### 4.1 For macOS and Linux, from the `base` directory, run:
+ #### 4.1 For macOS and Linux 
+ Open a terminal, `cd` to the `base` directory and run:
   ```bash
+  docker run --rm \
+   --tty \
+   --interactive \
+   --volume $(pwd):/srv/shiny-server/hcapca \
+   --workdir /srv/shiny-server/hcapca \
+   schanana/hcapca:latest hcapca.R
+  ```
+ #### 4.2 For Windows 10
+Use the `Powershell` **(not x86 or ISE, just Powershell)** and type:
+ ```powershell
+ docker run --interactive `
+   --tty `
+   --rm `
+   --volume //c/Users/username/path/to/base/directory:/srv/shiny-server/hcapca `
+   --workdir /srv/shiny-server/hcapca `
+   schanana/hcapca:latest hcapca.R
+ ```
+ Be sure to replace `/username/path/to/base/directory` in the above command with the path to the `base` directory.  
+
+ #### 4.3 For Windows 7
+Use the `Docker Quickstart Terminal`, `cd` to the `base` directory and run:
+ ```cygwin
   docker run --interactive --tty --rm \
     --volume $(pwd):/srv/shiny-server/hcapca \
     --workdir /srv/shiny-server/hcapca \
     schanana/hcapca:latest hcapca.R
   ```
- #### 4.2 For Windows 
- On Windows 7, use the `Docker Quickstart Terminal` while on Windows 10, use the `Powershell` **(not x86 or ISE, just Powershell)** and type:
- ```bash
- docker run --interactive --tty --rm \
-    --volume //c/Users/username/path/to/base/directory:/srv/shiny-server/hcapca
-    --workdir /srv/shiny-server/hcapca \
-    schanana/hcapca:latest hcapca.R
- ```
-Regardless of OS, a folder called `output` should be created within the `base` directory with the following structure:
+
+### Regardless of OS, a folder called `output` should be created within the `base` directory with the following structure:
 ```
-output
-    |--report.html
-    |--hca
-    |   |--lots_of.pdf
-    |
-    |--pca
-        |--names_with_underscores.html
-        |--directories_with_the_same_names
+base
+   |--output
+         |--report.html
+         |--hca
+         |   |--lots_of.pdfs
+         |
+         |--pca
+            |--names_with_underscores.html
+            |--directories_with_the_same_names
 ```
+If your config file has parameter `output_pca` as `FALSE`, then the `pca` folder will be empty. Do not worry, you can explore individual PCAs for each node in the next step.
+
 ## 5. Explore results
   #### 5.1 For macOS and Linux
+  In the `base` run:
 ```bash
-docker run --rm -it --name hcapca \
+docker run --rm \
+   --interactive \
+   --tty \
+   --name hcapca \
+   --detach \
    --volume $(pwd):/srv/shiny-server/hcapca \
    --workdir /srv/shiny-server/hcapca/ \
-   -p 3838:3838 \
+   --publish 3838:3838 \
    schanana/hcapca:latest
 ```
- #### 5.2 For Windows 
- On Windows 7, use the `Docker Quickstart Terminal` while on Windows 10, use the `Powershell` **(not x86 or ISE, just Powershell)** and type:
+Navigate to **http://127.0.0.1:3838/hcapca** to view your results in an interactive website!
+
+  #### 5.2 For Windows 10
+Use the `Powershell` **(not x86 or ISE, just Powershell)** and type:
+```powershell
+docker run --rm `
+   --interactive `
+   --tty `
+   --detach `
+   --volume //c/Users/<username>/path/to/base/directory:/srv/shiny-server/hcapca `
+   --workdir /srv/shiny-server/hcapca `
+   --publish 3838:3838 `
+   schanana/hcapca:latest hcapca.R
+```
+As before, replace `username/path/to/base/directory` with the path to the `base` directory.
+
+ #### 5.3 For Windows 7
+ On Windows 7, use the `Docker Quickstart Terminal` and in the `base` directory run:
  ```bash
- docker run --interactive --tty --rm \
-    --volume //c/Users/username/path/to/base/directory:/srv/shiny-server/hcapca
-    --workdir /srv/shiny-server/hcapca \
-    schanana/hcapca:latest hcapca.R
+ docker run --interactive \
+   --tty \
+   --rm \
+   --detach \
+   --volume $(pwd):/srv/shiny-server/hcapca \
+   --workdir /srv/shiny-server/hcapca \
+   --publish 3838:3838 \
+   schanana/hcapca:latest
  ```
-Navigate to http://127.0.0.1:3838/hcapca to view your results in an interactive website!
+Navigate to **http://your.ip:3838/hcapca** where you should replace `your.ip` with the ip shown when docker starts up - as mentioned in section #3 Housekeeping above.
 
   # Example outputs
   ##### 1. HCA
