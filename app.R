@@ -59,7 +59,7 @@ ui <- dashboardPage(
                 title = "",
                 solidHeader = F,
                 status = "success",
-                width = 12,
+                width = 8,
                 includeHTML("text/Instructions2.html")
               )
             )
@@ -68,7 +68,7 @@ ui <- dashboardPage(
     tabItem(tabName = "tree",
             fluidRow(
               box(
-                title = "What is HCA?", solidHeader = F, status = 'success', width=12,
+                title = "What is HCA?", solidHeader = F, status = 'success', width=8,
                 includeHTML("text/1.1 Overall Tree.html")
               ),
               box(
@@ -98,6 +98,14 @@ ui <- dashboardPage(
                     choices = nodeNames,
                     selected = "b"
                   )
+                ),
+                box(
+                  title = "Node Selected",
+                  status = "info",
+                  solidHeader = TRUE,
+                  collapsible = TRUE,
+                  width = NULL,
+                  verbatimTextOutput('node_selected')
                 )
               ),
               column(
@@ -218,7 +226,7 @@ server <- function(input, output, session) {
 
   # overall tree - first box; tree tab
   output$collapsibleTree <- renderCollapsibleTree({
-    collapsibleTree(df = get_tree(master_list), fontSize = 20)
+    collapsibleTree(df = get_tree(master_list), fontSize = 20, collapsed = F, inputId = 'cTnode')
   })
 
   # reactive for plotting dendrogram based on selected node; tree tab
@@ -244,6 +252,9 @@ server <- function(input, output, session) {
           ny = NULL
         )
       })
+  })
+  output$node_selected <- renderPrint({
+    str(input$cTnode)
   })
 
   #---- 2. PCA stuff ----

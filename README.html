@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+        <title>hcapca</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        <link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        <script src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+    </head>
+    <body>
+        <h1 id="hcapca">hcapca</h1>
+<p><strong>hcapca</strong> is an R script for performing Hierarchical Clustering Analysis (HCA) and Principal Component Analysis (PCA) on LC-MS data. It was tested on the following operating systems:</p>
+<ul>
+<li>macOS 10.14.4</li>
+<li>Ubuntu 18.04.2 LTS</li>
+<li>Windows 7</li>
+<li>Windows 10</li>
+</ul>
+<h1 id="instructions">Instructions</h1>
+<h2 id="1-install-docker">1. Install Docker</h2>
+<p>Install <a href="https://docs.docker.com/install">Docker Community Edition (CE)</a> for your operating system. For older Mac and Windows systems, you will need to install <a href="https://docs.docker.com/toolbox/overview">Docker Toolbox</a> instead.</p>
+<h2 id="2-get-example-data-scripts-and-config-file">2. Get example data, scripts, and config file</h2>
+<p>Example <code>data</code>, <code>R scripts</code>, and <code>config_file.yaml</code> can be found at <a href="https://uwmadison.box.com/v/schanana-hcapca">this link</a>. Please download and unzip to one place such that your directory structure looks like:</p>
+<pre><code><div>base
+  |--config_file.yaml
+  |--hcapca.R
+  |--accessory_functions.R
+  |--app.R
+  |--data
+      |--Analyses.dat
+      |--Variables_m.dat
+      |--Variables_t.dat
+      |--Table.dat
+</div></code></pre>
+<p>You can use your own data instead of example data here. The format of each file must be like the example data.<br>
+<em>Note: The <b><span style="color:blue"><code>base</code></span></b> directory is where you unzip the <code>data</code> folder, <code>R scripts</code>, and <code>config_file.yaml</code>.</em></p>
+<h2 id="3-housekeeping">3.  Housekeeping:</h2>
+<ul>
+<li>You must have administrator access to install Docker or Docker Toolbox.</li>
+<li>You should increase the memory limits to allow the script to run. I recommend 4 GB of RAM and 2 cores to run the example data.
+<ul>
+<li>For <strong>Windows 7</strong>, open VirtualBox (installed as part of Docker Toolbox) from Start Menu as admin and stop the virtual machine <code>default</code> that is running. In settings for <code>default</code>, change the RAM and processor allocation.</li>
+<li>For <strong>Linux</strong>, you don't need to do this since Docker has access to the entire system's resources.</li>
+<li>For <strong>Windows 10</strong> and <strong>macOS</strong>, open the preferences from the Docker app and increase resources as needed.</li>
+</ul>
+</li>
+<li>You must enable shared folders:
+<ul>
+<li>In <strong>Windows 10</strong>, you need to enable shared folders in preferences. Right click on the Docker icon in the system tray <strong>&gt;</strong> settings <strong>&gt;</strong> shared drives <strong>&gt;</strong> check appropriate drives <strong>&gt;</strong> Apply</li>
+<li>In <strong>Windows 7</strong>, as before, access the VirutalBox as admin <strong>&gt;</strong> stop the default virtual machine <strong>&gt;</strong> go to settings for the virtual machine <strong>&gt;</strong> Shared Folders <strong>&gt;</strong> Add as needed</li>
+</ul>
+</li>
+<li>For <strong>Windows 7</strong> please make a note of the IP address that is displayed when you first start the <code>Docker Quickstart Terminal</code>. Usually it is similar to <code>192.168.99.100</code>. This will be important in step 5 below.</li>
+</ul>
+<h2 id="4-run-the-script-to-process-data">4. Run the script to process data</h2>
+<h4 id="41-for-macos-and-linux">4.1 For macOS and Linux</h4>
+<p>Open a terminal, <code>cd</code> to the <code>base</code> directory and run:</p>
+<pre><code class="language-bash"><div>docker run --rm \
+ --tty \
+ --interactive \
+ --volume $(<span class="hljs-built_in">pwd</span>):/srv/shiny-server/hcapca \
+ --workdir /srv/shiny-server/hcapca \
+ schanana/hcapca:latest hcapca.R
+</div></code></pre>
+<h4 id="42-for-windows-10">4.2 For Windows 10</h4>
+<p>Use the <code>Powershell</code> <strong>(not x86 or ISE, just Powershell)</strong> and type:</p>
+<pre><code class="language-powershell"><div>docker run --interactive `
+  --tty `
+  --rm `
+  --volume //c/Users/username/path/to/base/directory:/srv/shiny-server/hcapca `
+  --workdir /srv/shiny-server/hcapca `
+  schanana/hcapca:latest hcapca.R
+</div></code></pre>
+<p>Be sure to replace <code>/username/path/to/base/directory</code> in the above command with the path to the <code>base</code> directory.</p>
+<h4 id="43-for-windows-7">4.3 For Windows 7</h4>
+<p>Use the <code>Docker Quickstart Terminal</code>, <code>cd</code> to the <code>base</code> directory and run:</p>
+<pre><code class="language-cygwin"><div> docker run --interactive --tty --rm \
+   --volume $(pwd):/srv/shiny-server/hcapca \
+   --workdir /srv/shiny-server/hcapca \
+   schanana/hcapca:latest hcapca.R
+</div></code></pre>
+<h3 id="regardless-of-os-a-folder-called-output-should-be-created-within-the-base-directory-with-the-following-structure">Regardless of OS, a folder called <code>output</code> should be created within the <code>base</code> directory with the following structure:</h3>
+<pre><code><div>base
+   |--output
+         |--report.html
+         |--hca
+         |   |--lots_of.pdfs
+         |
+         |--pca
+            |--names_with_underscores.html
+            |--directories_with_the_same_names
+</div></code></pre>
+<p>If your config file has parameter <code>output_pca</code> as <code>FALSE</code>, then the <code>pca</code> folder will be empty. Do not worry, you can explore individual PCAs for each node in the next step.</p>
+<h2 id="5-explore-results">5. Explore results</h2>
+<h4 id="51-for-macos-and-linux">5.1 For macOS and Linux</h4>
+<p>In the <code>base</code> run:</p>
+<pre><code class="language-bash"><div>docker run --rm \
+   --interactive \
+   --tty \
+   --name hcapca \
+   --detach \
+   --volume $(<span class="hljs-built_in">pwd</span>):/srv/shiny-server/hcapca \
+   --workdir /srv/shiny-server/hcapca/ \
+   --publish 3838:3838 \
+   schanana/hcapca:latest
+</div></code></pre>
+<p>Navigate to <strong><a href="http://127.0.0.1:3838/hcapca">http://127.0.0.1:3838/hcapca</a></strong> to view your results in an interactive website!</p>
+<h4 id="52-for-windows-10">5.2 For Windows 10</h4>
+<p>Use the <code>Powershell</code> <strong>(not x86 or ISE, just Powershell)</strong> and type:</p>
+<pre><code class="language-powershell"><div>docker run --rm `
+   --interactive `
+   --tty `
+   --detach `
+   --volume //c/Users/&lt;username&gt;/path/to/base/directory:/srv/shiny-server/hcapca `
+   --workdir /srv/shiny-server/hcapca `
+   --publish <span class="hljs-number">3838</span>:<span class="hljs-number">3838</span> `
+   schanana/hcapca:latest hcapca.R
+</div></code></pre>
+<p>As before, replace <code>username/path/to/base/directory</code> with the path to the <code>base</code> directory.</p>
+<h4 id="53-for-windows-7">5.3 For Windows 7</h4>
+<p>On Windows 7, use the <code>Docker Quickstart Terminal</code> and in the <code>base</code> directory run:</p>
+<pre><code class="language-bash"><div>docker run --interactive \
+  --tty \
+  --rm \
+  --detach \
+  --volume $(<span class="hljs-built_in">pwd</span>):/srv/shiny-server/hcapca \
+  --workdir /srv/shiny-server/hcapca \
+  --publish 3838:3838 \
+  schanana/hcapca:latest
+</div></code></pre>
+<p>Navigate to <strong><a href="http://your.ip:3838/hcapca">http://your.ip:3838/hcapca</a></strong> where you should replace <code>your.ip</code> with the ip shown when docker starts up - as mentioned in section #3 Housekeeping above.</p>
+<h2 id="table-format">Table Format</h2>
+<h3 id="1-analysesdat">1. Analyses.dat</h3>
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
+.tg .tg-0lax{text-align:left;vertical-align:top}
+</style>
+<table class="tg">
+  <tr>
+    <th class="tg-0lax">A123</th>
+  </tr>
+  <tr>
+    <td class="tg-0lax">B456</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">B789</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">A012</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">A345</td>
+  </tr>
+  <tr>
+    <td class="tg-0lax">B678</td>
+  </tr>
+</table>
+<h3 id="2-variablesmdat">2. Variables_m.dat</h3>
+<h1 id="example-outputs">Example outputs</h1>
+<h5 id="1-hca">1. HCA</h5>
+<p><code>b0-15.pdf</code> HCA of node b0 with 15 samples<br>
+<img src="file:////Users/fby/programming/hcapca/example_outputs/b0-15.jpg" alt="b0-15.pdf"></p>
+<h5 id="2-pca">2. PCA</h5>
+<p><code>b0_PC1-2_S.html</code> PCA Scores plot of b0 for PC1 and PC2
+<img src="file:////Users/fby/programming/hcapca/example_outputs/b0_PC1-2_S.html.png" alt="b0_PC1-2_S.html"></p>
+<h5 id="3-report">3. Report</h5>
+<p><code>report.html</code> Sample of report with links
+<img src="file:////Users/fby/programming/hcapca/example_outputs/report.png" alt="Sample Report"></p>
+<h1 id="troubleshooting">Troubleshooting:</h1>
+<ul>
+<li>
+<p>In some flavors of <strong>Windows</strong>, there may be an error in mounting a shared drive. If that happens, try the following:</p>
+<ul>
+<li>Make sure the path is specified as <code>//&lt;drive_letter&gt;/&lt;path&gt;</code></li>
+<li>Make sure the shared drives are enabled and that particular path is shared</li>
+<li>Make sure the terminal is running as administrator</li>
+</ul>
+</li>
+<li>
+<p>Docker abruptly stops running the script</p>
+<ul>
+<li>Make sure to allocate sufficient RAM and processing power to Docker. Usually, if the virual OS cannot get more memory, it experiences an Out Of Memory (OOM) error and kills the offending process thereby exiting the container.</li>
+</ul>
+</li>
+</ul>
+<h1 id="wiki">Wiki</h1>
+<p><a href="https://github.com/chanana/hcapca/wiki">Here</a> is a link to wiki page which is still under construction.</p>
+<h1 id="license">License</h1>
+<p>This project is licensed under the <a href="https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3)">GNU General Public License v3.0</a> - please see the <a href="LICENSE.md">LICENSE.md</a> file for full license.</p>
+<h1 id="acknowledgments">Acknowledgments</h1>
+<p>A huge thank you to Chris Thomas for helping bring this idea to fruition by being a wall to bounce off ideas. He does not have a github account so <a href="https://www.ncbi.nlm.nih.gov/pubmed/?term=Thomas%5BAuthor%5D%20AND%20Bugni%5BAuthor%5D&amp;cmd=DetailsSearch">here is a link</a> to a pubmed search with his publications.
+Another shoutout goes to <a href="https://github.com/WiscEvan">@WiscEvan</a> for helping figure out bits and pieces of code here and there especially with the shiny UX.</p>
+
+    </body>
+    </html>
