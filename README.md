@@ -133,7 +133,7 @@ Navigate to **http://your.ip:3838/hcapca** where you should replace `your.ip` wi
 ## Table Format
 #### 1. `Analyses.dat`
 **Contains:** Sample names  
-**Format:** One name per line. Names can be any combination of letters and numbers. Duplicates will be removed.
+**Format:** One name per line; names can be any combination of letters and numbers. Duplicates will be removed.
 
     A123  
     B123  
@@ -142,9 +142,12 @@ Navigate to **http://your.ip:3838/hcapca** where you should replace `your.ip` wi
 
 #### 2. `Variables_m.dat`, `Variables_t.dat`, and `Table.dat`
 **Contains:** m/z, retention times, and intensity values   
-**Format:** Space separated values; numbers only  
+**Format:** Space separated values; numbers only. Each line contains the values corresponding to the sample names from `Analyses.dat` above.
     
-    198.0390 758.3503 457.0753 395.1877 366.2404 395.1398 438.1456 378.1118 435.0968 525.2830 466.2464 181.0945 312.1296 349.1325 184.0433 224.0357 201.0702 223.0520 425.0835 286.0064 311.1384 371.2302 337.0677 1440.1085 501.2123 279.1840 523.2645 344.1935 227.1010 334.1136 417.1203 379.1951 260.1269 831.0832 1065.6647 741.1990 180.0889 414.1628 459.8809 ...
+    198.0390 758.3503 0.0000 395.1877 366.2404 ...
+    438.1456 378.1118 435.0968 525.2830 0.0000 ...
+    312.1296 349.1325 184.0433 0.0000 201.0702 ...
+    425.0835 0.0000 311.1384 371.2302 337.0677 ...
 
   # Example outputs
   ##### 1. HCA
