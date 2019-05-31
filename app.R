@@ -84,12 +84,14 @@ ui <- dashboardPage(
                 solidHeader = F,
                 status = 'success',
                 width = 8,
+                collapsible = T,
                 includeHTML("text/1.1 Overall Tree.html")
               ),
               box(
                 title = "Overall Tree",
                 solidHeader = T,
                 status = "info",
+                collapsible = T,
                 collapsibleTreeOutput(outputId = 'collapsibleTree'),
                 width = 12
               )
@@ -102,13 +104,14 @@ ui <- dashboardPage(
                   solidHeader = F,
                   status = 'success',
                   width = NULL,
+                  collapsible = T,
                   includeHTML("text/1.2 Dendrogram.html")
                 ),
                 box(
                   title = "Node Selection",
                   status = "warning",
                   solidHeader = TRUE,
-                  collapsible = FALSE,
+                  collapsible = T,
                   width = NULL,
                   selectInput(
                     inputId = "node_to_plot_tree",
@@ -147,6 +150,7 @@ ui <- dashboardPage(
                 solidHeader = F,
                 status = 'success',
                 width = 12,
+                collapsible = T,
                 includeHTML("text/2.1 Parameters.html")
               )
             ),
@@ -171,7 +175,7 @@ ui <- dashboardPage(
                 uiOutput(outputId = 'y_axis_placeholder'),
                 uiOutput(outputId = 'N_points_placeholder'),
                 uiOutput(outputId = 'make_plots_placeholder'),
-                infoBoxOutput(outputId = 'pc1_pc2')
+                infoBoxOutput(outputId = 'pc1_pc2', width = NULL)
                 # verbatimTextOutput(outputId = "debug")
               ),
               column(
@@ -182,13 +186,14 @@ ui <- dashboardPage(
                   solidHeader = F,
                   status = 'success',
                   width = NULL,
+                  collapsible = T,
                   includeHTML("text/2.2 Scores Plot.html")
                 ),
                 box(
                   title = "Scores",
                   status = "info",
                   solidHeader = TRUE,
-                  collapsible = FALSE,
+                  collapsible = T,
                   width = NULL,
                   plotlyOutput("scores")
                 ),
@@ -197,6 +202,7 @@ ui <- dashboardPage(
                   solidHeader = F,
                   status = 'success',
                   width = NULL,
+                  collapsible = T,
                   includeHTML("text/2.3 Loadings Plot.html")
                 ),
                 box(
@@ -212,6 +218,7 @@ ui <- dashboardPage(
                   solidHeader = F,
                   status = 'success',
                   width = NULL,
+                  collapsible = T,
                   includeHTML("text/2.4 Cumulative and Individual Variance.html")
                 ),
                 box(
@@ -227,18 +234,20 @@ ui <- dashboardPage(
     # poweroff tab
     tabItem(tabName = 'powerOff',
             fluidRow(
+              column(width = 4,
               box(
                 title = "Exit",
                 solidHeader = F,
                 status = 'success',
-                width = 4,
+                width = NULL,
+                collapsible = T,
                 includeHTML("text/3. Exit.html")
               ),
-              actionButton(
+              actionButton(width = NULL,
                 inputId = 'power_off',
                 label = '',
                 icon = icon('power-off')
-              )
+              ))
             ))
   ))
 )
@@ -356,7 +365,16 @@ server <- function(input, output, session) {
         )
       )
     output$make_plots_placeholder <-
-      renderUI(actionButton(inputId = 'make_plots', label = 'Plot'))
+      renderUI(
+        box(
+          title = "",
+          status = "success",
+          solidHeader = FALSE,
+          collapsible = FALSE,
+          width = NULL,
+          actionButton(inputId = 'make_plots', label = 'Plot')
+        )
+      )
   })
   # output$debug <- renderPrint({
   #   # print("input$node_to_plot_tree")
@@ -394,10 +412,11 @@ server <- function(input, output, session) {
                              df_loadings <-
                                remove_euclidean_distance_column(df_loadings)
 
-                             hovertext <- paste0("</br>M/Z: ",
-                                                 lapply(strsplit(rownames(df_loadings), "_"), `[[`, 1),
-                                                 "</br>RT: ",
-                                                 lapply(strsplit(rownames(df_loadings), "_"), `[[`, 2))
+                             hovertext <- paste0(
+                               "</br>M/Z: ",
+                               lapply(strsplit(rownames(df_loadings), "_"), `[[`, 1),
+                               "</br>RT: ",
+                               lapply(strsplit(rownames(df_loadings), "_"), `[[`, 2))
 
                              plt_loadings <- plot_ly(
                                data = df_loadings,
@@ -492,12 +511,10 @@ server <- function(input, output, session) {
   })
   #---- output pc1+pc2 ----
   output$pc1_pc2 <- renderInfoBox({
-    infoBox(
-      title = "PC1 + PC2",
-      value = pcaData()$pc1_pc2,
-      icon = icon('info'),
-      color = 'green',
-      fill = T
+    infoBox(title = "PC1 + PC2 explain", subtitle = "Variance",
+      value = paste0(round(pcaData()$pc1_pc2, 2), "%"),
+      icon = icon('chart-bar'),
+      color = 'purple',
     )
   })
   #---- Power Button ----
