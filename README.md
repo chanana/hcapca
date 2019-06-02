@@ -6,6 +6,9 @@
 * Windows 7
 * Windows 10
 
+# Demo
+![hcapca-demo](./example_outputs/demo.gif)
+
 # Instructions
 
 ## 1. Install Docker
@@ -149,16 +152,17 @@ Navigate to **http://your.ip:3838/hcapca** where you should replace `your.ip` wi
     312.1296 349.1325 184.0433 0.0000 201.0702 ...
     425.0835 0.0000 311.1384 371.2302 337.0677 ...
 
-  # Example outputs
+  # Some Example outputs
   ##### 1. HCA
   `b0-15.pdf` HCA of node b0 with 15 samples  
   ![b0-15.pdf](./example_outputs/b0-15.jpg)
   ##### 2. PCA  
   `b0_PC1-2_S.html` PCA Scores plot of b0 for PC1 and PC2
   ![b0_PC1-2_S.html](./example_outputs/b0_PC1-2_S.html.png)
-  ##### 3. Report  
+  <!--##### 3. Report  
   `report.html` Sample of report with links
   ![Sample Report](./example_outputs/report.png)
+  -->
 
 # Troubleshooting:
 * In some flavors of **Windows**, there may be an error in mounting a shared drive. If that happens, try the following:
