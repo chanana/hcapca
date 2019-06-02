@@ -145,13 +145,31 @@ ui <- dashboardPage(
     #---- pca tab ----
     tabItem(tabName = 'pca',
             fluidRow(
-              box(
+              column(width=12,
+                box(
                 title = "Selecting Parameters",
                 solidHeader = F,
                 status = 'success',
-                width = 12,
+                width = NULL,
                 collapsible = T,
                 includeHTML("text/2.1 Parameters.html")
+                ),
+                box(
+                  title = "Overall Tree",
+                  solidHeader = T,
+                  status = "info",
+                  collapsible = T,
+                  collapsibleTreeOutput(outputId = 'collapsibleTreePCA'),
+                  width = NULL
+                ),
+                box(
+                  title = "Node Selected",
+                  status = "info",
+                  solidHeader = TRUE,
+                  collapsible = TRUE,
+                  width = NULL,
+                  verbatimTextOutput('node_selected_pca')
+                )
               )
             ),
             fluidRow(
@@ -265,7 +283,14 @@ server <- function(input, output, session) {
       inputId = 'cTnode'
     )
   })
-
+  output$collapsibleTreePCA <- renderCollapsibleTree({
+    collapsibleTree(
+      df = get_tree(master_list),
+      fontSize = 20,
+      collapsed = F,
+      inputId = 'cTnode_pca'
+    )
+  })
   # reactive for plotting dendrogram based on selected node; tree tab
   dendro <- reactive({
     dend <-
@@ -293,6 +318,12 @@ server <- function(input, output, session) {
   output$node_selected <- renderPrint({
     list_of_nodes <-
       unlist(input$cTnode) # comes from collapsibleTree inside renderCT above
+    cat("Node you clicked: ", tail(list_of_nodes, 1), "\n")
+    cat("Parent nodes: ", head(list_of_nodes, -1))
+  })
+  output$node_selected_pca <- renderPrint({
+    list_of_nodes <-
+      unlist(input$cTnode_pca) # comes from collapsibleTree inside renderCT above
     cat("Node you clicked: ", tail(list_of_nodes, 1), "\n")
     cat("Parent nodes: ", head(list_of_nodes, -1))
   })
@@ -511,11 +542,10 @@ server <- function(input, output, session) {
   })
   #---- output pc1+pc2 ----
   output$pc1_pc2 <- renderInfoBox({
-    infoBox(title = "PC1 + PC2 explain", subtitle = "Variance",
-      value = paste0(round(pcaData()$pc1_pc2, 2), "%"),
-      icon = icon('chart-bar'),
-      color = 'purple',
-    )
+    infoBox(title = "PC1 + PC2", subtitle = "Variance",
+            value = paste0(round(pcaData()$pc1_pc2, 2), "%"),
+            # icon = icon('chart-bar'),
+            color = 'purple',)
   })
   #---- Power Button ----
   observeEvent(eventExpr = input$power_off, handlerExpr = {
