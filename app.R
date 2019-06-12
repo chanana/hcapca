@@ -21,7 +21,7 @@ source(
 # load master_list (list of nodes with dendrograms)
 master_list <-
   readRDS(file = file.path(parameters$save_folder, "master_list_obj.RDS"))
-nodeNames <- unlist(lapply(master_list, `[[`, "ID"))
+nodeIDs <- unlist(lapply(master_list, `[[`, "ID"))
 colors <-
   readRDS(file = file.path(parameters$save_folder, "colors_obj.RDS"))
 pca_objects <-
@@ -32,6 +32,8 @@ pca_objects <-
   )
 pca_objects_str <-
   str_extract(string = pca_objects, pattern = "b[01]*")
+TLNN <- two_letter_node_Names(N = length(master_list))
+names(pca_objects_str) <- TLNN
 
 #---- UI ----
 ui <- dashboardPage(
@@ -116,7 +118,7 @@ ui <- dashboardPage(
                   selectInput(
                     inputId = "node_to_plot_tree",
                     label = "Select Node to View Dendrogram",
-                    choices = nodeNames,
+                    choices = TLNN,
                     selected = "b"
                   )
                 ),
@@ -185,7 +187,7 @@ ui <- dashboardPage(
                   selectInput(
                     inputId = "node_to_plot_pca",
                     label = "Select Node to View PCA",
-                    choices = c("None", nodeNames),
+                    choices = c("None", TLNN),
                     selected = "None"
                   )
                 ),
@@ -294,7 +296,7 @@ server <- function(input, output, session) {
   # reactive for plotting dendrogram based on selected node; tree tab
   dendro <- reactive({
     dend <-
-      master_list[[get_node_position(input$node_to_plot_tree)]]$dend
+      master_list[[get_node_position_by_name(input$node_to_plot_tree)]]$dend
     return(dend)
   })
 
@@ -331,7 +333,7 @@ server <- function(input, output, session) {
   #---- 2. PCA stuff ----
   length_node_to_plot_pca <- reactive({
     l <-
-      master_list[[get_node_position(input$node_to_plot_pca)]]$members
+      master_list[[get_node_position_by_name(input$node_to_plot_pca)]]$members
     l <- length(l)
     return(l)
   })

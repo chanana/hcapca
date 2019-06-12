@@ -157,7 +157,7 @@ colors = c(
   # 7. gray37 (medium gray)
   "#ffffff"
 ) # 8. white
-
+save_object(saveDirectory = parameters$save_folder, object = "colors")
 cat("\n", "------making HCA plots-------", "\n")
 
 # make HCA for each node
@@ -201,7 +201,21 @@ for (node in nodeNames) {
     master_list[[n]]$var <- 0
   }
 }
-save_object(saveDirectory = parameters$save_folder, object = "colors")
+
+TLNN <- two_letter_node_Names(N = length(master_list))
+names(TLNN) <- nodeNames
+
+for (i in seq_along(master_list)) {
+  master_list[[i]]$name <- TLNN[master_list[[i]]$ID]
+}
+
+# make master_list pathStrings shorter and more human-readable
+for (i in seq_along(master_list)) {
+  master_list[[i]]$pathStringID <- master_list[[i]]$pathString
+  master_list[[i]]$pathString <-
+    change_pathString(oldPathString = master_list[[i]]$pathStringID)
+}
+
 save_object(saveDirectory = parameters$save_folder, object = "master_list")
 
 # Make pca html for everything (pc1 vs pc2)

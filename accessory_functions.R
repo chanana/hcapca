@@ -1,33 +1,70 @@
 # ~~~~ accessory functions ~~~~
+# returns N two letter node names (TLNN) for human readability of node Names
+two_letter_node_Names <- function(N = 0) {
+  a = rep(NA, length(letters) ^ 2)
+  count = 1
+  for (i in letters) {
+    for (j in letters) {
+      a[count] = paste0(i, j)
+      count = count + 1
+    }
+  }
+  TLNN <- sample(x = a,
+                 size = N,
+                 replace = FALSE)
+  return(TLNN)
+}
+
+change_pathString <- function(oldPathString, dict=TLNN) {
+  oldPathString <-
+    unlist(str_split(string = oldPathString, pattern = "/"))
+  newPathString <-
+    paste(dict[oldPathString], collapse = "/")
+  return(newPathString)
+}
+
 # returns a list of objects who do not inherit from class "function"
 ClassFilter <- function(x) {
-  !inherits(base::get(x), 'function' )
+  !inherits(base::get(x), 'function')
 }
 
 # Saves object to <object-name>_obj file in save_points directory
-save_object <- function(saveDirectory, object=NULL, objectName=NULL, objectEnv=.GlobalEnv) {
-  # object must be given as a string (in quotes)
-  # objects must be reloaded with readRDS()
-  if (!dir.exists(saveDirectory)) {
-    dir.create(saveDirectory)
-  }
-  if (is.null(object)) { # save all objects except functions
-    objNames <- Filter(ClassFilter, ls(envir = .GlobalEnv))
-    for (obj in objNames) {
-      objName <- file.path(saveDirectory, paste0(obj, "_obj.RDS"))
-      saveRDS(object = base::get(obj), file = objName, compress = T)
+save_object <-
+  function(saveDirectory,
+           object = NULL,
+           objectName = NULL,
+           objectEnv = .GlobalEnv) {
+    # object must be given as a string (in quotes)
+    # objects must be reloaded with readRDS()
+    if (!dir.exists(saveDirectory)) {
+      dir.create(saveDirectory)
     }
-  }
-  else {
-    if (is.null(objectName)) {
-      objName = file.path(saveDirectory, paste0(object, "_obj.RDS"))
+    if (is.null(object)) {
+      # save all objects except functions
+      objNames <- Filter(ClassFilter, ls(envir = .GlobalEnv))
+      for (obj in objNames) {
+        objName <- file.path(saveDirectory, paste0(obj, "_obj.RDS"))
+        saveRDS(
+          object = base::get(obj),
+          file = objName,
+          compress = T
+        )
+      }
     }
     else {
-      objName = file.path(saveDirectory, paste0(objectName, "_obj.RDS"))
+      if (is.null(objectName)) {
+        objName = file.path(saveDirectory, paste0(object, "_obj.RDS"))
+      }
+      else {
+        objName = file.path(saveDirectory, paste0(objectName, "_obj.RDS"))
+      }
+      saveRDS(
+        object = base::get(x = object, envir = objectEnv),
+        file = objName,
+        compress = T
+      )
     }
-    saveRDS(object = base::get(x = object, envir = objectEnv), file = objName, compress = T)
   }
-}
 
 scale_pareto <- function(df) {
   #returns pareto scaled data
@@ -57,8 +94,8 @@ add_euclidean_distance <- function(df) {
 select_top_N_points <- function(df, N_points = 5000) {
   # warning: loadings plot must have 3 columns; first two are coordinates,
   # last one is euclidean distance named euc
-  df <- df[order(df$euc, decreasing = TRUE),]
-  df <- df[1:N_points,]
+  df <- df[order(df$euc, decreasing = TRUE), ]
+  df <- df[1:N_points, ]
   return(df)
 }
 
@@ -112,12 +149,26 @@ display_tree <- function(LIST) {
         limit = NULL)
 }
 
-get_node_position <- function(nodeName) {
+get_node_position <- function(nodeID) {
   n <-
     which(lapply(
       X = master_list,
       FUN = function(x)
-        x$ID == nodeName
+        x$ID == nodeID
+    ) == 1)
+  if (length(n) == 0) {
+    return(-1)
+  }
+  else
+    return(n)
+}
+
+get_node_position_by_name <- function(nodeName) {
+  n <-
+    which(lapply(
+      X = master_list,
+      FUN = function(x)
+        x$name == nodeName
     ) == 1)
   if (length(n) == 0) {
     return(-1)
@@ -158,7 +209,7 @@ pca_based_on_membership <-
            scaled_data = NULL) {
     # if supplied with scaled data, skip the next block
     if (is.null(scaled_data)) {
-      df <- remove_zeros(dataframe[name_list,])
+      df <- remove_zeros(dataframe[name_list, ])
 
       # scale -> make correlation matrix -> cluster ->
       # make dendrogram -> add labels
@@ -199,10 +250,12 @@ explained_variance_of_node <-
     pca.env$p <-
       pca_based_on_membership(dataframe = dataframe, master_list[[n]]$members, scaled_data)
 
-    save_object(saveDirectory = saveDirectory,
-                object = "p",
-                objectName = paste0(master_list[[n]]$ID, "_pca"),
-                objectEnv = pca.env)
+    save_object(
+      saveDirectory = saveDirectory,
+      object = "p",
+      objectName = paste0(master_list[[n]]$ID, "_pca"),
+      objectEnv = pca.env
+    )
 
     # the explained variance in a vector
     v <- pca.env$p$sdev ^ 2 / sum(pca.env$p$sdev ^ 2) * 100
@@ -219,7 +272,7 @@ process_node <- function(dataframe = df, id) {
   node <- master_list[[n]]
 
   # Get dataframe and remove zeroes
-  df <- remove_zeros(dataframe[node$members,])
+  df <- remove_zeros(dataframe[node$members, ])
 
   # Scale, get distance metric, cluster, and get dendrogram with labels
   df.s <- scale_pareto(df) # pareto scale the data
@@ -366,7 +419,7 @@ auto_process <- function(dataframe = df,
       for (i in a) {
         cat("\n", "=====")
         process_node(dataframe = dataframe, id = i)
-        cat("=====","\n","Processed!", "\n")
+        cat("=====", "\n", "Processed!", "\n")
       }
     }
 
@@ -384,7 +437,11 @@ auto_process <- function(dataframe = df,
 
       for (i in a) {
         v <-
-          explained_variance_of_node(dataframe = dataframe, nameOfNode = i, saveDirectory = saveDirectory)
+          explained_variance_of_node(
+            dataframe = dataframe,
+            nameOfNode = i,
+            saveDirectory = saveDirectory
+          )
         n <- get_node_position(i)
         master_list[[n]]$var <<- v
         b <- c(b, round(v[1] + v[2], 2))
@@ -490,9 +547,11 @@ make_pca_html <-
       file.path(getwd(),
                 outfile,
                 paste0(nodeName, "_PC", axis1, "-", axis2, "_L.html"))
-    htmlwidgets::saveWidget(widget = p$loadings,
-                            file = filename_loadings,
-                            selfcontained = TRUE)
+    htmlwidgets::saveWidget(
+      widget = p$loadings,
+      file = filename_loadings,
+      selfcontained = TRUE
+    )
     return("done!")
   }
 
@@ -500,7 +559,7 @@ make_dendrogram <- function(dataframe = df, nodeName) {
   n <- get_node_position(nodeName)
   name_list <- master_list[[n]]$members
 
-  df <- remove_zeros(dataframe[name_list,])
+  df <- remove_zeros(dataframe[name_list, ])
   df.s <- scale_pareto(df)
   df.cor <- cor(x = t(df.s), y = t(df.s)) #correlation matrix
   df.clust <-
@@ -531,7 +590,9 @@ make_hca_plot_pdf <-
       file.path(getwd(),
                 outfile,
                 paste0(nodeName, "-", number_of_members, ".pdf"))
-    pdf(file = filename, width = w, height = h)
+    pdf(file = filename,
+        width = w,
+        height = h)
     par(bg = colors[6], fg = colors[4])
     d %>%
       set("branches_lwd", lwd) %>%
