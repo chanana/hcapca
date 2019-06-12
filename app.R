@@ -21,7 +21,6 @@ source(
 # load master_list (list of nodes with dendrograms)
 master_list <-
   readRDS(file = file.path(parameters$save_folder, "master_list_obj.RDS"))
-nodeIDs <- unlist(lapply(master_list, `[[`, "ID"))
 colors <-
   readRDS(file = file.path(parameters$save_folder, "colors_obj.RDS"))
 pca_objects <-
@@ -32,8 +31,11 @@ pca_objects <-
   )
 pca_objects_str <-
   str_extract(string = pca_objects, pattern = "b[01]*")
-TLNN <- two_letter_node_Names(N = length(master_list))
-names(pca_objects_str) <- TLNN
+nodeNames <- unlist(lapply(master_list, `[[`, "name"))
+nodeNamesForSelecting <- nodeNames
+nodeIDs <- unlist(lapply(master_list, `[[`, "ID"))
+names(nodeIDs) <- nodeNames[nodeIDs]
+names(nodeNamesForSelecting) <- NULL
 
 #---- UI ----
 ui <- dashboardPage(
@@ -118,8 +120,8 @@ ui <- dashboardPage(
                   selectInput(
                     inputId = "node_to_plot_tree",
                     label = "Select Node to View Dendrogram",
-                    choices = TLNN,
-                    selected = "b"
+                    choices = nodeNamesForSelecting,
+                    selected = nodeNamesForSelecting[1]
                   )
                 ),
                 box(
@@ -187,7 +189,7 @@ ui <- dashboardPage(
                   selectInput(
                     inputId = "node_to_plot_pca",
                     label = "Select Node to View PCA",
-                    choices = c("None", TLNN),
+                    choices = c("None", nodeNamesForSelecting),
                     selected = "None"
                   )
                 ),
@@ -426,7 +428,7 @@ server <- function(input, output, session) {
                            valueExpr = {
                              # Get pca object from file
                              position <-
-                               match(x = input$node_to_plot_pca,
+                               match(x = nodeIDs[input$node_to_plot_pca],
                                      table = pca_objects_str)
                              pca <-
                                readRDS(file = pca_objects[position])
