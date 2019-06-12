@@ -50,7 +50,7 @@ _Note: The <b><span style="color:blue">`base`</span></b> directory is where you 
   docker run --rm \
    --tty \
    --interactive \
-   --volume $(pwd):/srv/shiny-server/hcapca \
+   --volume $(pwd):/srv/shiny-server/hcapca:rw \
    --workdir /srv/shiny-server/hcapca \
    schanana/hcapca:latest hcapca.R
   ```
@@ -98,7 +98,7 @@ docker run --rm \
    --tty \
    --name hcapca \
    --detach \
-   --volume $(pwd):/srv/shiny-server/hcapca \
+   --volume $(pwd):/srv/shiny-server/hcapca:rw \
    --workdir /srv/shiny-server/hcapca/ \
    --publish 3838:3838 \
    schanana/hcapca:latest
