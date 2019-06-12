@@ -419,7 +419,7 @@ auto_process <- function(dataframe = df,
       for (i in a) {
         cat("\n", "=====")
         process_node(dataframe = dataframe, id = i)
-        cat("=====", "\n", "Processed!", "\n")
+        cat("\n", "=====", "\n", "Processed!", "\n")
       }
     }
 
@@ -455,9 +455,9 @@ auto_process <- function(dataframe = df,
       }
 
       for (i in a) {
-        cat('\n=====')
+        cat('\n', '=====')
         process_node(dataframe = dataframe, id = i)
-        cat('=====\nProcessed!\n')
+        cat('=====','\n','Processed!','\n')
       }
     }
 
