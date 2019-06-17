@@ -41,7 +41,7 @@ _Note: The <b><span style="color:blue">`base`</span></b> directory is where you 
 * You must enable shared folders:
 	* In **Windows 10**, you need to enable shared folders in preferences. Right click on the Docker icon in the system tray **>** settings **>** shared drives **>** check appropriate drives **>** Apply
 	* In **Windows 7**, as before, access the VirutalBox as admin **>** stop the default virtual machine **>** go to settings for the virtual machine **>** Shared Folders **>** Add as needed
-* For **Windows 7** please make a note of the IP address that is displayed when you first start the `Docker Quickstart Terminal`. Usually it is similar to `192.168.99.100`. This will be important in step 5 below.
+* For **Windows 7** please make a note of the IP address that is displayed when you first start the `Docker Quickstart Terminal`. Usually it is something like `192.168.99.100`. This will be important in step 5 below.
 
 ## 4. Run the script to process data
  #### 4.1 For macOS and Linux 
@@ -68,9 +68,11 @@ Use the `Powershell` **(not x86 or ISE, just Powershell)** and type:
 
  #### 4.3 For Windows 7
 Use the `Docker Quickstart Terminal`, `cd` to the `base` directory and run:
- ```cygwin
-  docker run --interactive --tty --rm \
-    --volume $(pwd):/srv/shiny-server/hcapca \
+ ```bash
+  docker run --interactive \
+    --tty \
+    --rm \
+    --volume $(pwd):/srv/shiny-server/hcapca:rw \
     --workdir /srv/shiny-server/hcapca \
     schanana/hcapca:latest hcapca.R
   ```
@@ -111,13 +113,14 @@ Use the `Powershell` **(not x86 or ISE, just Powershell)** and type:
 docker run --rm `
    --interactive `
    --tty `
+   --name hcapca `
    --detach `
-   --volume //c/Users/<username>/path/to/base/directory:/srv/shiny-server/hcapca `
+   --volume //c/Users/<username>/path/to/base/directory:/srv/shiny-server/hcapca:rw `
    --workdir /srv/shiny-server/hcapca `
    --publish 3838:3838 `
-   schanana/hcapca:latest hcapca.R
-```
-As before, replace `username/path/to/base/directory` with the path to the `base` directory.
+   schanana/hcapca:latest
+   ```
+As before, replace `username/path/to/base/directory` with the path to the `base` directory and navigate to **http://127.0.0.1:3838/hcapca** to view your results in an interactive website!
 
  #### 5.3 For Windows 7
  On Windows 7, use the `Docker Quickstart Terminal` and in the `base` directory run:
@@ -126,6 +129,7 @@ As before, replace `username/path/to/base/directory` with the path to the `base`
    --tty \
    --rm \
    --detach \
+   --name hcapca \
    --volume $(pwd):/srv/shiny-server/hcapca \
    --workdir /srv/shiny-server/hcapca \
    --publish 3838:3838 \
@@ -172,6 +176,8 @@ Navigate to **http://your.ip:3838/hcapca** where you should replace `your.ip` wi
 
 * Docker abruptly stops running the script
   * Make sure to allocate sufficient RAM and processing power to Docker. Usually, if the virual OS cannot get more memory, it experiences an Out Of Memory (OOM) error and kills the offending process thereby exiting the container.
+
+* For any issues please open an issue here on github or email me at schanana@wisc.edu
   
 # Wiki
 [Here](https://github.com/chanana/hcapca/wiki) is a link to wiki page which is still under construction.
