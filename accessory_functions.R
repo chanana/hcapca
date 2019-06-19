@@ -29,11 +29,10 @@ ClassFilter <- function(x) {
 }
 
 # Saves object to <object-name>_obj file in save_points directory
-save_object <-
-  function(saveDirectory,
-           object = NULL,
-           objectName = NULL,
-           objectEnv = .GlobalEnv) {
+save_object <- function(saveDirectory,
+                        object = NULL,
+                        objectName = NULL,
+                        objectEnv = .GlobalEnv) {
     # object must be given as a string (in quotes)
     # objects must be reloaded with readRDS()
     if (!dir.exists(saveDirectory)) {
