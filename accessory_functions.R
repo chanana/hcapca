@@ -324,154 +324,155 @@ process_node <- function(dataframe = df, id) {
   master_list[[n]]$isLeaf <<- FALSE
 }
 
-start_gui <- function(dataframe = df) {
-  while (TRUE) {
-    cat(
-      '\nYou can:
-      1. Type the name of a node to process, or
-      2. Type "tree" to print the current tree structure, or
-      3. Type "show" to list nodes that have not been expanded yet, or
-      4. Type "exit" to end this prompt.'
-    )
-    answer <- readline(prompt = "--> ")
-    answer <- str_to_lower(answer)
+# start_gui <- function(dataframe = df) {
+#   while (TRUE) {
+#     cat(
+#       '\nYou can:
+#       1. Type the name of a node to process, or
+#       2. Type "tree" to print the current tree structure, or
+#       3. Type "show" to list nodes that have not been expanded yet, or
+#       4. Type "exit" to end this prompt.'
+#     )
+#     answer <- readline(prompt = "--> ")
+#     answer <- str_to_lower(answer)
 
-    # check if 'exit'
-    if (identical(answer, 'exit')) {
-      break
-    }
-    # check if 'tree'
-    if (identical(answer, 'tree')) {
-      display_tree()
-      next
-    }
-    # check if 'show'
-    if (identical(answer, 'show')) {
-      cat('--------\n')
-      print(cbind(
-        'name' = unexplored_nodes('name'),
-        'number of members' = unexplored_nodes('number')
-      ))
-      cat('--------\n')
-      next
-    }
+#     # check if 'exit'
+#     if (identical(answer, 'exit')) {
+#       break
+#     }
+#     # check if 'tree'
+#     if (identical(answer, 'tree')) {
+#       display_tree()
+#       next
+#     }
+#     # check if 'show'
+#     if (identical(answer, 'show')) {
+#       cat('--------\n')
+#       print(cbind(
+#         'name' = unexplored_nodes('name'),
+#         'number of members' = unexplored_nodes('number')
+#       ))
+#       cat('--------\n')
+#       next
+#     }
 
-    # check if 'auto'
-    if (identical(answer, 'auto')) {
-      while (TRUE) {
-        answer <-
-          str_to_lower(readline(prompt = '--- type "v" for variance or "n" for number > '))
-        if (identical(answer, 'v')) {
-          answer <- readline(prompt = 'enter a minimum variance threshold > ')
+#     # check if 'auto'
+#     if (identical(answer, 'auto')) {
+#       while (TRUE) {
+#         answer <-
+#           str_to_lower(readline(prompt = '--- type "v" for variance or "n" for number > '))
+#         if (identical(answer, 'v')) {
+#           answer <- readline(prompt = 'enter a minimum variance threshold > ')
 
-        }
-      }
-    }
-    # Now, we know that the answer isn't one of the other options, we
-    # can query the list to get the position of the node
-    n <- get_node_position(answer)
+#         }
+#       }
+#     }
+#     # Now, we know that the answer isn't one of the other options, we
+#     # can query the list to get the position of the node
+#     n <- get_node_position(answer)
 
-    # check if node name was typed incorrectly
-    if (n == -1) {
-      cat("\n Node name not found. Please try again. \n")
-      next
-    }
-    # check if node is a leaf; leaves are nodes that have not been processed yet
-    if (!master_list[[n]]$isLeaf) {
-      cat('\nThat node has already been processed. Try a different node.\n')
-      next
-    } else {
-      process_node(dataframe = dataframe, answer)
-    }
-  }
-}
+#     # check if node name was typed incorrectly
+#     if (n == -1) {
+#       cat("\n Node name not found. Please try again. \n")
+#       next
+#     }
+#     # check if node is a leaf; leaves are nodes that have not been processed yet
+#     if (!master_list[[n]]$isLeaf) {
+#       cat('\nThat node has already been processed. Try a different node.\n')
+#       next
+#     } else {
+#       process_node(dataframe = dataframe, answer)
+#     }
+#   }
+# }
 
-auto_process <- function(dataframe = df,
-                         numOrVar = "num",
-                         N = 30,
-                         saveDirectory = saveDirectory) {
-  # check if 'N' is a number
-  if (!is.numeric(N)) {
-    return("Not a number!")
-  }
+# auto_process <- function(dataframe = df,
+#                          numOrVar = "num",
+#                          N = 30,
+#                          saveDirectory = saveDirectory) {
+#   # check if 'N' is a number
+#   if (!is.numeric(N)) {
+#     return("Not a number!")
+#   }
 
-  # default assumes "num" but other option is "var" for a variance cutoff
-  if (identical(numOrVar, "num")) {
-    if (N %% 1 != 0) {
-      return("Not a whole number!")
-    } # must be a whole number for option 'num
+#   # default assumes "num" but other option is "var" for a variance cutoff
+#   if (identical(numOrVar, "num")) {
+#     if (N %% 1 != 0) {
+#       return("Not a whole number!")
+#     } # must be a whole number for option 'num
 
-    # if the tests pass, then we know to process based on a number cutoff
-    while (TRUE) {
-      a <- unexplored_nodes('name')
-      b <- unexplored_nodes('number')
+#     # if the tests pass, then we know to process based on a number cutoff
+#     while (TRUE) {
+#       a <- unexplored_nodes('name')
+#       b <- unexplored_nodes('number')
 
-      # hopefully, the two vectors are the same length
-      a <- a[b > N]
+#       # hopefully, the two vectors are the same length
+#       a <- a[b > N]
 
-      # if no node meets the above criterion, a is a 0 length character vector
-      if (identical(a, character(0))) {
-        return("Finished auto-generating tree based on number.")
-      }
+#       # if no node meets the above criterion, a is a 0 length character vector
+#       if (identical(a, character(0))) {
+#         return("Finished auto-generating tree based on number.")
+#       }
 
-      # process all nodes present in a
-      for (i in a) {
-        cat("\n", "=====")
-        process_node(dataframe = dataframe, id = i)
-        cat("\n", "=====", "\n", "Processed!", "\n")
-      }
-    }
+#       # process all nodes present in a
+#       for (i in a) {
+#         cat("\n", "=====")
+#         process_node(dataframe = dataframe, id = i)
+#         cat("\n", "=====", "\n", "Processed!", "\n")
+#       }
+#     }
 
-  } else if (identical(numOrVar, "var")) {
-    N <- round(N, 2) # round the input value to two decimals
+#   } else if (identical(numOrVar, "var")) {
+#     N <- round(N, 2) # round the input value to two decimals
 
-    while (TRUE) {
-      a <- unexplored_nodes('name') # get list of unexpanded nodes
-      b <- c()
-      e <-
-        unexplored_nodes("number") # get list of how many members each has
+#     while (TRUE) {
+#       a <- unexplored_nodes('name') # get list of unexpanded nodes
+#       b <- c()
+#       e <-
+#         unexplored_nodes("number") # get list of how many members each has
 
-      # if a node has only three or fewer members, it should not be expanded
-      a <- a[e > 3]
+#       # if a node has only three or fewer members, it should not be expanded
+#       a <- a[e > 3]
 
-      for (i in a) {
-        v <-
-          explained_variance_of_node(
-            dataframe = dataframe,
-            nameOfNode = i,
-            saveDirectory = saveDirectory
-          )
-        n <- get_node_position(i)
-        master_list[[n]]$var <<- v
-        b <- c(b, round(v[1] + v[2], 2))
-      }
+#       for (i in a) {
+#         v <-
+#           explained_variance_of_node(
+#             dataframe = dataframe,
+#             nameOfNode = i,
+#             saveDirectory = saveDirectory
+#           )
+#         n <- get_node_position(i)
+#         master_list[[n]]$var <<- v
+#         b <- c(b, round(v[1] + v[2], 2))
+#       }
 
-      # filter array based on the cutoff variance
-      a <- a[b < N]
+#       # filter array based on the cutoff variance
+#       a <- a[b < N]
 
-      if (identical(a, character(0))) {
-        return("Finished auto-generating tree based on variance.")
-      }
+#       if (identical(a, character(0))) {
+#         return("Finished auto-generating tree based on variance.")
+#       }
 
-      for (i in a) {
-        cat('\n', '=====')
-        process_node(dataframe = dataframe, id = i)
-        cat('=====','\n','Processed!','\n')
-      }
-    }
+#       for (i in a) {
+#         cat('\n', '=====')
+#         process_node(dataframe = dataframe, id = i)
+#         cat('=====','\n','Processed!','\n')
+#       }
+#     }
 
-  } else {
-    return("Please enter either 'num' or 'var'.")
-  }
-}
+#   } else {
+#     return("Please enter either 'num' or 'var'.")
+#   }
+# }
 
 make_pca_plot <-
-  function(dataframe = df,
-           nodeName,
+  function(nodeID,
            axis1 = 1,
            axis2 = 2,
            max_points_loadings = 5000) {
-    p <- pca_based_on_node(dataframe = dataframe, nodeName)
+    p <- readRDS(file.path(getwd(),
+                           parameters$save_folder,
+                           paste0(nodeID,"_pca_obj.RDS")))
 
     plt_scores <-
       plot_ly(
@@ -520,38 +521,32 @@ make_pca_plot <-
   }
 
 make_pca_html <-
-  function(dataframe = df,
-           nodeName,
+  function(nodeID,
            axis1 = 1,
            axis2 = 2,
            outfile = "pca",
            max_points_loadings = 5000) {
-    p <-
-      make_pca_plot(
-        dataframe = dataframe,
-        nodeName = nodeName,
-        axis1 = axis1,
-        axis2 = axis2,
-        max_points_loadings = max_points_loadings
-      )
+    pca <- make_pca_plot(nodeID=nodeID,
+                         axis1 = axis1,
+                         axis2 = axis2,
+                         max_points_loadings = max_points_loadings)
     filename_scores <-
       file.path(getwd(),
                 outfile,
-                paste0(nodeName, "_PC", axis1, "-", axis2, "_S.html"))
-    htmlwidgets::saveWidget(widget = p$scores,
+                paste0(nodeID, "_PC", axis1, "-", axis2, "_S.html"))
+    htmlwidgets::saveWidget(widget = pca$scores,
                             file = filename_scores,
                             selfcontained = TRUE)
 
     filename_loadings <-
       file.path(getwd(),
                 outfile,
-                paste0(nodeName, "_PC", axis1, "-", axis2, "_L.html"))
+                paste0(nodeID, "_PC", axis1, "-", axis2, "_L.html"))
     htmlwidgets::saveWidget(
-      widget = p$loadings,
+      widget = pca$loadings,
       file = filename_loadings,
       selfcontained = TRUE
     )
-    return("done!")
   }
 
 make_dendrogram <- function(dataframe = df, nodeName) {

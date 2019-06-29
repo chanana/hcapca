@@ -217,19 +217,28 @@ for (i in seq_along(master_list)) {
 }
 
 save_object(saveDirectory = parameters$save_folder, object = "master_list")
+pca_objects <-
+  list.files(
+    path = file.path(parameters$save_folder),
+    pattern = "pca",
+    full.names = T
+  )
 
 # Make pca html for everything (pc1 vs pc2)
 if (parameters$output_pca) {
   cat("\n", "-------making PCA plots-------", "\n")
-  for (node in names(nodeNames)) {
-    n <- get_node_position(node)
+  for (obj in pca_objects) {
+    nodeID <- str_extract(string = obj, pattern = "b[01]*")
+    n <- get_node_position(nodeID = nodeID)
     if (length(master_list[[n]]$members) < 3) {
       print("Two or fewer members; skipping...")
       next
     } else {
+      pca <- readRDS(file = obj)
       make_pca_html(
-        nodeName = node,
-        dataframe = df,
+        nodeID=nodeID,
+        axis1 = 1,
+        axis2 = 2,
         outfile = output_folder_pca,
         max_points_loadings = parameters$max_points_loadings
       )
