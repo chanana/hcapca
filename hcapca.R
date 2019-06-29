@@ -221,7 +221,7 @@ save_object(saveDirectory = parameters$save_folder, object = "master_list")
 # Make pca html for everything (pc1 vs pc2)
 if (parameters$output_pca) {
   cat("\n", "-------making PCA plots-------", "\n")
-  for (node in nodeNames) {
+  for (node in names(nodeNames)) {
     n <- get_node_position(node)
     if (length(master_list[[n]]$members) < 3) {
       print("Two or fewer members; skipping...")
