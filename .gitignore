@@ -2,6 +2,7 @@
 data/
 output/
 save_points/
+save_points_20/
 src/*
 shinylog/*
 
