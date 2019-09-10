@@ -130,7 +130,7 @@ As before, replace `username/path/to/base/directory` with the path to the `base`
    --rm \
    --detach \
    --name hcapca \
-   --volume $(pwd):/srv/shiny-server/hcapca \
+   --volume "$(pwd)":/srv/shiny-server/hcapca \
    --workdir /srv/shiny-server/hcapca \
    --publish 3838:3838 \
    schanana/hcapca:latest
