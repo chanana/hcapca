@@ -324,146 +324,84 @@ process_node <- function(dataframe = df, id) {
   master_list[[n]]$isLeaf <<- FALSE
 }
 
-# start_gui <- function(dataframe = df) {
-#   while (TRUE) {
-#     cat(
-#       '\nYou can:
-#       1. Type the name of a node to process, or
-#       2. Type "tree" to print the current tree structure, or
-#       3. Type "show" to list nodes that have not been expanded yet, or
-#       4. Type "exit" to end this prompt.'
-#     )
-#     answer <- readline(prompt = "--> ")
-#     answer <- str_to_lower(answer)
+auto_process <- function(dataframe = df,
+                         numOrVar = "num",
+                         N = 30,
+                         saveDirectory = saveDirectory) {
+  # check if 'N' is a number
+  if (!is.numeric(N)) {
+    return("Not a number!")
+  }
 
-#     # check if 'exit'
-#     if (identical(answer, 'exit')) {
-#       break
-#     }
-#     # check if 'tree'
-#     if (identical(answer, 'tree')) {
-#       display_tree()
-#       next
-#     }
-#     # check if 'show'
-#     if (identical(answer, 'show')) {
-#       cat('--------\n')
-#       print(cbind(
-#         'name' = unexplored_nodes('name'),
-#         'number of members' = unexplored_nodes('number')
-#       ))
-#       cat('--------\n')
-#       next
-#     }
+  # default assumes "num" but other option is "var" for a variance cutoff
+  if (identical(numOrVar, "num")) {
+    if (N %% 1 != 0) {
+      return("Not a whole number!")
+    } # must be a whole number for option 'num
 
-#     # check if 'auto'
-#     if (identical(answer, 'auto')) {
-#       while (TRUE) {
-#         answer <-
-#           str_to_lower(readline(prompt = '--- type "v" for variance or "n" for number > '))
-#         if (identical(answer, 'v')) {
-#           answer <- readline(prompt = 'enter a minimum variance threshold > ')
+    # if the tests pass, then we know to process based on a number cutoff
+    while (TRUE) {
+      a <- unexplored_nodes('name')
+      b <- unexplored_nodes('number')
 
-#         }
-#       }
-#     }
-#     # Now, we know that the answer isn't one of the other options, we
-#     # can query the list to get the position of the node
-#     n <- get_node_position(answer)
+      # hopefully, the two vectors are the same length
+      a <- a[b > N]
 
-#     # check if node name was typed incorrectly
-#     if (n == -1) {
-#       cat("\n Node name not found. Please try again. \n")
-#       next
-#     }
-#     # check if node is a leaf; leaves are nodes that have not been processed yet
-#     if (!master_list[[n]]$isLeaf) {
-#       cat('\nThat node has already been processed. Try a different node.\n')
-#       next
-#     } else {
-#       process_node(dataframe = dataframe, answer)
-#     }
-#   }
-# }
+      # if no node meets the above criterion, a is a 0 length character vector
+      if (identical(a, character(0))) {
+        return("Finished auto-generating tree based on number.")
+      }
 
-# auto_process <- function(dataframe = df,
-#                          numOrVar = "num",
-#                          N = 30,
-#                          saveDirectory = saveDirectory) {
-#   # check if 'N' is a number
-#   if (!is.numeric(N)) {
-#     return("Not a number!")
-#   }
+      # process all nodes present in a
+      for (i in a) {
+        cat("\n", "=====")
+        process_node(dataframe = dataframe, id = i)
+        cat("\n", "=====", "\n", "Processed!", "\n")
+      }
+    }
 
-#   # default assumes "num" but other option is "var" for a variance cutoff
-#   if (identical(numOrVar, "num")) {
-#     if (N %% 1 != 0) {
-#       return("Not a whole number!")
-#     } # must be a whole number for option 'num
+  } else if (identical(numOrVar, "var")) {
+    N <- round(N, 2) # round the input value to two decimals
 
-#     # if the tests pass, then we know to process based on a number cutoff
-#     while (TRUE) {
-#       a <- unexplored_nodes('name')
-#       b <- unexplored_nodes('number')
+    while (TRUE) {
+      a <- unexplored_nodes('name') # get list of unexpanded nodes
+      b <- c()
+      e <-
+        unexplored_nodes("number") # get list of how many members each has
 
-#       # hopefully, the two vectors are the same length
-#       a <- a[b > N]
+      # if a node has only three or fewer members, it should not be expanded
+      a <- a[e > 3]
 
-#       # if no node meets the above criterion, a is a 0 length character vector
-#       if (identical(a, character(0))) {
-#         return("Finished auto-generating tree based on number.")
-#       }
+      for (i in a) {
+        v <-
+          explained_variance_of_node(
+            dataframe = dataframe,
+            nameOfNode = i,
+            saveDirectory = saveDirectory
+          )
+        n <- get_node_position(i)
+        master_list[[n]]$var <<- v
+        b <- c(b, round(v[1] + v[2], 2))
+      }
 
-#       # process all nodes present in a
-#       for (i in a) {
-#         cat("\n", "=====")
-#         process_node(dataframe = dataframe, id = i)
-#         cat("\n", "=====", "\n", "Processed!", "\n")
-#       }
-#     }
+      # filter array based on the cutoff variance
+      a <- a[b < N]
 
-#   } else if (identical(numOrVar, "var")) {
-#     N <- round(N, 2) # round the input value to two decimals
+      if (identical(a, character(0))) {
+        return("Finished auto-generating tree based on variance.")
+      }
 
-#     while (TRUE) {
-#       a <- unexplored_nodes('name') # get list of unexpanded nodes
-#       b <- c()
-#       e <-
-#         unexplored_nodes("number") # get list of how many members each has
+      for (i in a) {
+        cat('\n', '=====')
+        process_node(dataframe = dataframe, id = i)
+        cat('\n', '=====','\n','Processed!','\n')
+      }
+    }
 
-#       # if a node has only three or fewer members, it should not be expanded
-#       a <- a[e > 3]
-
-#       for (i in a) {
-#         v <-
-#           explained_variance_of_node(
-#             dataframe = dataframe,
-#             nameOfNode = i,
-#             saveDirectory = saveDirectory
-#           )
-#         n <- get_node_position(i)
-#         master_list[[n]]$var <<- v
-#         b <- c(b, round(v[1] + v[2], 2))
-#       }
-
-#       # filter array based on the cutoff variance
-#       a <- a[b < N]
-
-#       if (identical(a, character(0))) {
-#         return("Finished auto-generating tree based on variance.")
-#       }
-
-#       for (i in a) {
-#         cat('\n', '=====')
-#         process_node(dataframe = dataframe, id = i)
-#         cat('=====','\n','Processed!','\n')
-#       }
-#     }
-
-#   } else {
-#     return("Please enter either 'num' or 'var'.")
-#   }
-# }
+  } else {
+    return("Please enter either 'num' or 'var'.")
+  }
+}
 
 make_pca_plot <-
   function(nodeID,
@@ -602,6 +540,91 @@ make_hca_plot_pdf <-
       })
     dev.off()
   }
+
+make_colored_hca_plot_pdf <-
+  function(dataframe = df,
+           nodeID,
+           outfile = "hca",
+           metadata,
+           color_column_names) {
+  d <- master_list[[get_node_position(nodeID)]]$dend # get dendrogram
+
+  if (is.null(d)) {
+    d <- make_dendrogram(dataframe = dataframe, nodeID)
+  }
+  color_vector_list <- list()
+
+  # filter metadata so that only matching names
+  for (col in color_column_names) {
+    df_for_legend <- metadata[match(labels(d), metadata[,1]), ]
+    color_vector_list[[col]] <- df_for_legend[ ,col]
+  }
+
+  if (length(color_vector_list) == 2) {
+    # this means there is a second category with colors so we should
+    # color the labels to show this category
+    labels_colors(d) <- color_vector_list[[2]]
+  }
+
+  number_of_members <- length(labels(d)) # get total number of leaves
+  w = width_of_pdf(numberOfLeaves = number_of_members) # get width
+
+  if (!dir.exists(outfile)) {
+    dir.create(outfile)
+  } # create directory if it doesn't exist
+
+  filename <-
+    file.path(getwd(),
+              outfile,
+              paste0(nodeID, "-", number_of_members, ".pdf"))
+  pdf(file = filename, width = w, height = 9)
+  # par(bg = "#E5E5E5", fg = "#5e5e5e")
+  d %>%
+    dendextend::set("branches_lwd", 2) %>% # make branches' lines wider
+    dendextend::set("leaves_pch", 16) %>% # make leaves points circles
+    dendextend::set("leaves_cex", 2.5) %>% # make circles bigger
+    dendextend::set("leaves_col", color_vector_list[[color_column_names[1]]]) %>% # assign colors to circles
+    # hang.dendrogram %>%
+    plot(panel.first = {grid(col = '#5e5e5e', lty = 3, nx = NA, ny = NULL)})
+  legend("topright",
+         legend = unique(df_for_legend[,2]),
+         fill = unique(df_for_legend[,4]),
+         border = "black",
+         cex=1, y.intersp = 0.7, ncol=2,
+         title = paste0(colnames(metadata)[2], " (circles)"))
+  if (length(color_vector_list) == 2) {
+    legend('topleft',
+         legend = unique(df_for_legend[,3]),
+         fill = unique(df_for_legend[,5]),
+         border = "black",
+         cex=1, y.intersp = 0.7, ncol=2,
+         title = paste0(colnames(metadata)[3], " (labels)"))
+  }
+  dev.off()
+
+  # pdf(file = "legend.pdf", width=7, height=7)
+  # plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
+  # legend("topright", legend = unique(metadata[,2]), fill = unique(metadata[,3]),
+  #        border = "black", cex=0.7, y.intersp = 0.7, ncol=2)
+  # dev.off()
+}
+
+add_color_column <- function(metadata, column_names) {
+  # make sure the columns are factors
+  metadata[column_names] <- lapply(metadata[column_names], factor)
+
+  # for each column, add a corresponding color column named <colname>.color
+  for (name in column_names) {
+    metadata[paste0(name,".color")] <- as.numeric(unlist(metadata[name]))
+  }
+  return(metadata)
+}
+
+width_of_pdf <- function(numberOfLeaves) {
+  # increase width by 16in for every 25 extra leaves
+  w = (as.integer(numberOfLeaves/50)+1)*16
+  return(w)
+}
 
 find_strain <- function(strainName) {
   unlist(lapply(

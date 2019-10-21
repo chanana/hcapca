@@ -23,6 +23,7 @@ master_list <-
   readRDS(file = file.path(parameters$save_folder, "master_list_obj.RDS"))
 colors <-
   readRDS(file = file.path(parameters$save_folder, "colors_obj.RDS"))
+palette(colors)
 pca_objects <-
   list.files(
     path = file.path(parameters$save_folder),
@@ -37,6 +38,13 @@ nodeIDs <- unlist(lapply(master_list, `[[`, "ID"))
 names(nodeIDs) <- nodeNames[nodeIDs]
 names(nodeNamesForSelecting) <- NULL
 
+# load metadata if present
+if (!is.null(parameters$metadata)) {
+  metadata <-
+    readRDS(file = file.path(parameters$save_folder, "metadata_obj.RDS"))
+  color_column_names <-
+    colnames(metadata)[str_detect(string = colnames(metadata), pattern = "color")]
+}
 #---- UI ----
 ui <- dashboardPage(
   skin = "black",
@@ -304,20 +312,56 @@ server <- function(input, output, session) {
 
   # plot of dendrogram; tree tab
   output$node <- renderPlot({
-    par(bg = colors[6], fg = colors[4])
     d <- dendro()
-    d %>%
-      # dendextend::set("branches_lwd", 2) %>%
-      color_branches(k = 2, col = colors[c(1, 3)]) %>%
-      hang.dendrogram %>%
-      plot(panel.first = {
-        grid(
-          col = colors[8],
-          lty = 3,
-          nx = NA,
-          ny = NULL
-        )
-      })
+    # if metadata file exists, then make colored dendrograms
+    if (exists(x = "metadata", inherits = TRUE)) {
+      color_vector_list <- list()
+      for (col in color_column_names) {
+        df_for_legend <- metadata[match(labels(d), metadata[,1]), ]
+        color_vector_list[[col]] <- df_for_legend[ ,col]
+      }
+      if (length(color_vector_list) == 2) {
+        # this means there is a second category with colors so we should
+        # color the labels to show this category
+        labels_colors(d) <- color_vector_list[[2]]
+      }
+      # number_of_members <- length(labels(d)) # get total number of leaves
+      # w = width_of_pdf(numberOfLeaves = number_of_members) # get width
+      d %>%
+        dendextend::set("branches_lwd", 2) %>% # make branches' lines wider
+        dendextend::set("leaves_pch", 16) %>% # make leaves points circles
+        dendextend::set("leaves_cex", 2.5) %>% # make circles bigger
+        dendextend::set("leaves_col", color_vector_list[[color_column_names[1]]]) %>% # assign colors to circles
+        # hang.dendrogram %>%
+        plot(panel.first = {grid(col = '#5e5e5e', lty = 3, nx = NA, ny = NULL)})
+      legend("topright",
+             legend = unique(df_for_legend[,2]),
+             fill = unique(df_for_legend[,4]),
+             border = "black",
+             cex=1, y.intersp = 0.7, ncol=2,
+             title = paste0(colnames(metadata)[2], " (circles)"))
+      if (length(color_vector_list) == 2) {
+        legend('topleft',
+               legend = unique(df_for_legend[,3]),
+               fill = unique(df_for_legend[,5]),
+               border = "black",
+               cex=1, y.intersp = 0.7, ncol=2,
+               title = paste0(colnames(metadata)[3], " (labels)"))}
+    } else { # else just make normal ones
+      par(bg = colors[6], fg = colors[4])
+      d %>%
+        # dendextend::set("branches_lwd", 2) %>%
+        color_branches(k = 2, col = colors[c(1, 3)]) %>%
+        hang.dendrogram %>%
+        plot(panel.first = {
+          grid(
+            col = colors[8],
+            lty = 3,
+            nx = NA,
+            ny = NULL
+          )
+        })
+    }
   })
   output$node_selected <- renderPrint({
     list_of_nodes <-
@@ -447,7 +491,7 @@ server <- function(input, output, session) {
                              df_loadings <-
                                remove_euclidean_distance_column(df_loadings)
 
-                             hovertext <- paste0(
+                             hovertext <- paste0(#rownames(df_loadings))
                                "</br>M/Z: ",
                                lapply(strsplit(rownames(df_loadings), "_"), `[[`, 1),
                                "</br>RT: ",
