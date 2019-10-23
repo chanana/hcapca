@@ -3,9 +3,9 @@
 two_letter_node_Names <- function(N = 0) {
   a = rep(NA, length(letters) ^ 2)
   count = 1
-  for (i in letters) {
+  for (nodeID in letters) {
     for (j in letters) {
-      a[count] = paste0(i, j)
+      a[count] = paste0(nodeID, j)
       count = count + 1
     }
   }
@@ -75,9 +75,9 @@ scale_pareto <- function(df) {
   ))
 }
 
-remove_zeros <- function(df) {
-  sumcol = colSums(df)
-  df = df[, sumcol != 0] # select only the non zero sum columns
+remove_nas <- function(df) {
+  df <- df[, unlist(lapply(df, function(x) !all(is.na(x))))]
+  return(df)
 }
 
 euclidean_distance <- function(x) {
@@ -204,19 +204,11 @@ unexplored_nodes <- function(nameOrNumber) {
 
 pca_based_on_membership <-
   function(dataframe = df,
-           name_list = NULL,
-           scaled_data = NULL) {
-    # if supplied with scaled data, skip the next block
-    if (is.null(scaled_data)) {
-      df <- remove_zeros(dataframe[name_list, ])
-
-      # scale -> make correlation matrix -> cluster ->
-      # make dendrogram -> add labels
-      df.s <- scale_pareto(df) # pareto scaled data
-    } else {
-      df.s <- scaled_data
-    }
-
+           name_list = NULL) {
+    # scale -> make correlation matrix -> cluster ->
+    # make dendrogram -> add labels
+    df.s <- scale_pareto(df[name_list, ]) # pareto scaled data
+    df.s <- remove_nas(df.s)
     df.pca <- prcomp(df.s, scale. = F, center = F)
     return(df.pca)
   }
@@ -230,35 +222,41 @@ pca_based_on_node <- function(dataframe = df, nodeName) {
 
 explained_variance_of_node <-
   function(dataframe = df,
-           nameOfNode = NULL,
+           nodeID = NULL,
            position = NULL,
-           scaled_data = NULL,
            saveDirectory = saveDirectory) {
     # returns a vector of explained variance for a given node; hopefully not all
     # three are null at any one time
 
     # retrieve node from list if name supplied
-    if (!is.null(nameOfNode)) {
-      n <- get_node_position(nameOfNode)
+    if (is.null(position)) {
+      n <- get_node_position(nodeID)
     } else {
       n <- position
     }
 
-    pca.env <<- new.env()
-    # calculate pca of node based on its members if is supplied instead
-    pca.env$p <-
-      pca_based_on_membership(dataframe = dataframe, master_list[[n]]$members, scaled_data)
+    # if variance array has already been calculated, return it
+    nodeVariance = master_list[[n]]$var
+    if (!is.null(nodeVariance)) {
+      return(nodeVariance)
+    } else {
+      pca.env <<- new.env()
+      # calculate pca of node based on its members if is supplied instead
+      pca.env$p <-
+        pca_based_on_membership(dataframe = dataframe,
+                                name_list = master_list[[n]]$members)
 
-    save_object(
-      saveDirectory = saveDirectory,
-      object = "p",
-      objectName = paste0(master_list[[n]]$ID, "_pca"),
-      objectEnv = pca.env
-    )
+      save_object(
+        saveDirectory = saveDirectory,
+        object = "p",
+        objectName = paste0(master_list[[n]]$ID, "_pca"),
+        objectEnv = pca.env
+      )
 
-    # the explained variance in a vector
-    v <- pca.env$p$sdev ^ 2 / sum(pca.env$p$sdev ^ 2) * 100
-    return(v)
+      # the explained variance in a vector
+      v <- pca.env$p$sdev ^ 2 / sum(pca.env$p$sdev ^ 2) * 100
+      return(v)
+    }
   }
 
 process_node <- function(dataframe = df, id) {
@@ -270,11 +268,12 @@ process_node <- function(dataframe = df, id) {
   # node is then just an element from the master_list with the correct id
   node <- master_list[[n]]
 
-  # Get dataframe and remove zeroes
-  df <- remove_zeros(dataframe[node$members, ])
+  # Get dataframe
+  df <- dataframe[node$members, ]
 
   # Scale, get distance metric, cluster, and get dendrogram with labels
   df.s <- scale_pareto(df) # pareto scale the data
+  df.s <- remove_nas(df.s) # remove any NaNs
   df.cor <- cor(x = t(df.s), y = t(df.s)) # correlation matrix
   df.clust <-
     hclust(as.dist(1 - df.cor), method = "average") # clusters
@@ -318,7 +317,7 @@ process_node <- function(dataframe = df, id) {
       pathString = rightChildPathString,
       isLeaf = TRUE
     )
-  cat(paste0("\n", "[4/4] made right child called: ", rightChildID))
+  cat(paste0("\n", "[4/4] made right child called: ", rightChildID, "\n"))
 
   # set isLeaf option of current node to FALSE
   master_list[[n]]$isLeaf <<- FALSE
@@ -353,10 +352,10 @@ auto_process <- function(dataframe = df,
       }
 
       # process all nodes present in a
-      for (i in a) {
+      for (nodeID in a) {
         cat("\n", "=====")
-        process_node(dataframe = dataframe, id = i)
-        cat("\n", "=====", "\n", "Processed!", "\n")
+        process_node(dataframe = dataframe, id = nodeID)
+        cat("=====", "\n", "Processed!", "\n")
       }
     }
 
@@ -372,14 +371,14 @@ auto_process <- function(dataframe = df,
       # if a node has only three or fewer members, it should not be expanded
       a <- a[e > 3]
 
-      for (i in a) {
+      for (nodeID in a) {
         v <-
           explained_variance_of_node(
             dataframe = dataframe,
-            nameOfNode = i,
+            nodeID = nodeID,
             saveDirectory = saveDirectory
           )
-        n <- get_node_position(i)
+        n <- get_node_position(nodeID)
         master_list[[n]]$var <<- v
         b <- c(b, round(v[1] + v[2], 2))
       }
@@ -391,9 +390,9 @@ auto_process <- function(dataframe = df,
         return("Finished auto-generating tree based on variance.")
       }
 
-      for (i in a) {
+      for (nodeID in a) {
         cat('\n', '=====')
-        process_node(dataframe = dataframe, id = i)
+        process_node(dataframe = dataframe, id = nodeID)
         cat('\n', '=====','\n','Processed!','\n')
       }
     }
@@ -491,8 +490,9 @@ make_dendrogram <- function(dataframe = df, nodeName) {
   n <- get_node_position(nodeName)
   name_list <- master_list[[n]]$members
 
-  df <- remove_zeros(dataframe[name_list, ])
+  df <- dataframe[name_list, ]
   df.s <- scale_pareto(df)
+  df.s <- remove_nas(df.s)
   df.cor <- cor(x = t(df.s), y = t(df.s)) #correlation matrix
   df.clust <-
     hclust(as.dist(1 - (df.cor)), method = "average") #clusters
@@ -525,14 +525,14 @@ make_hca_plot_pdf <-
     pdf(file = filename,
         width = w,
         height = h)
-    par(bg = colors[6], fg = colors[4])
+    par(bg = "#d3d3d3", fg = '#000000')
     d %>%
-      set("branches_lwd", lwd) %>%
-      color_branches(k = 2, col = colors[c(1, 3)]) %>%
+      dendextend::set("branches_lwd", lwd) %>%
+      dendextend::color_branches(k = 2, col = 1:2) %>%
       hang.dendrogram %>%
       plot(panel.first = {
         grid(
-          col = colors[8],
+          col = '#ffffff',
           lty = 3,
           nx = NA,
           ny = NULL

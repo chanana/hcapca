@@ -23,68 +23,92 @@ source(file.path(
 
 cat("\n", "------reading data-------", "\n")
 
-# Read files
-df <- fread(
-  input = parameters$spectral_table,
-  header = F,
-  data.table = F
-)
-dfrows <- fread(
-  input = parameters$sample_names,
-  header = F,
-  data.table = F,
-  sep = NULL
-)
-dfcolM <- fread(input = parameters$mass_table,
-                header = F,
-                data.table = F)
-dfcolT <- fread(input = parameters$time_table,
-                header = F,
-                data.table = F)
-
-# ~~~~~ Fix row and column names ~~~~~
-dfrows <-
-  str_extract(string = dfrows[, 1], pattern = parameters$row_name_pattern)
-
-# check for duplicated rows
-duplicates <- duplicated(dfrows)
-if (any(duplicates)) {
-  # if any duplicates are found
-  df <- df[c(!duplicates),] # remove corresponding rows from data
-  dfrows <- dfrows[c(!duplicates)] # remove duplicated samples
+if (is.null(parameters$single_table) &&
+    is.null(parameters$spectral_table)) {
+  stop("Can't have both a single table and multiple files. Comment out one or
+       the other secion in the config.yaml file")
 }
 
-# find columns that are completely zero and remove them
-col_to_keep <- which(colSums(df) != 0)
-df <- df[, col_to_keep]
+if (is.null(parameters$single_table)) {
+  df <- fread(
+    input = parameters$spectral_table,
+    header = F,
+    data.table = F
+  )
+  dfrows <- fread(
+    input = parameters$sample_names,
+    header = F,
+    data.table = F,
+    sep = NULL
+  )
+  dfcolM <- fread(input = parameters$mass_table,
+                  header = F,
+                  data.table = F)
+  dfcolT <- fread(input = parameters$time_table,
+                  header = F,
+                  data.table = F)
 
-# if (length(col_to_delete) != 0) {
-#   # there are columns that are completely zero
-#   df2 <- df2[, -c(col_to_delete)]
-# }
+  # ~~~~~ Fix row and column names ~~~~~
+  dfrows <-
+    str_extract(string = dfrows[, 1], pattern = parameters$row_name_pattern)
 
-# combine mass and time into one string separated by underscore
-dfcol <- paste0(dfcolM, "_", dfcolT)
-# There are fewer columns in the original dataset because of the removal step. Select only the columns common to both the original data and the column names.
-dfcol <- dfcol[col_to_keep]
+  # check for duplicated rows
+  duplicates <- duplicated(dfrows)
+  if (any(duplicates)) {
+    # if any duplicates are found
+    df <- df[c(!duplicates),] # remove corresponding rows from data
+    dfrows <- dfrows[c(!duplicates)] # remove duplicated samples
+  }
 
-# if (length(col_to_delete) != 0) {
-#   dfcol <- dfcol[-c(col_to_delete)]
-# }
-colnames(df) <- dfcol
-df <- as.data.frame(df)
-rownames(df) <- dfrows
+  # # find columns that are completely zero and remove them
+  # col_to_keep <- which(colSums(df) != 0)
+  # df <- df[, col_to_keep]
+
+  # combine mass and time into one string separated by underscore
+  dfcol <- paste0(dfcolM, "_", dfcolT)
+  # # There are fewer columns in the original dataset because of the removal step. Select only the columns common to both the original data and the column names.
+  # dfcol <- dfcol[col_to_keep]
+
+  colnames(df) <- dfcol
+  df <- as.data.frame(df)
+  rownames(df) <- dfrows
+} else {
+  df <- fread(
+    input = parameters$single_table,
+    header = F,
+    data.table = F
+  )
+  if (!is.null(parameters$col_to_remove)) {
+    df[, c(parameters$col_to_remove)] <- NULL
+  }
+  if (parameters$transpose) { # if it needs transposition
+    df <- as.data.frame(t(as.matrix(df))) # transpose it
+  }
+
+  dfrows <- as.character(df[2:nrow(df),1])
+  dfcols <- as.character(unlist(df[1,2:ncol(df)]))
+  df[, 1] <- NULL
+  df <- df[2:nrow(df), ]
+
+  df <- as.data.frame(sapply(df, function(x) as.numeric(as.character(x))))
+
+  # # find columns that are completely zero and remove them
+  # col_to_keep <- which(colSums(df) != 0)
+  # df <- df[, col_to_keep]
+
+  rownames(df) <- dfrows
+  colnames(df) <- dfcols
+}
 save_object(saveDirectory = parameters$save_folder, object = "df")
-
 cat("\n", "------read data-------", "\n")
-
 cat("\n", "------calculating pca, hca-------", "\n")
 
 # ~~~~ scale -> distance -> cluster -> dendgrogram -> label ~~~~
-df.s = scale_pareto(df)
-df.cor = cor(x = t(df.s), y = t(df.s)) # correlation matrix
-df.clust = hclust(as.dist(1 - df.cor), method = "average") # clusters
-df.dend = as.dendrogram(df.clust) # as dendrogram object
+df.s <- scale_pareto(df)
+df.s <- remove_nas(df.s)
+df.cor <- cor(x = t(df.s), y = t(df.s)) # correlation matrix
+df.clust <- hclust(as.dist(1 - df.cor), method = "average") # clusters
+df.dend <- as.dendrogram(df.clust) # as dendrogram object
 labels(df.dend) <-
   rownames(df)[order.dendrogram(df.dend)] #label each leaf
 df.pca <- prcomp(df.s, center = F, scale. = F) # PCA of all samples
