@@ -348,14 +348,14 @@ server <- function(input, output, session) {
                cex=1, y.intersp = 0.7, ncol=2,
                title = paste0(colnames(metadata)[3], " (labels)"))}
     } else { # else just make normal ones
-      par(bg = colors[6], fg = colors[4])
+      par(bg = "#d3d3d3", fg = '#000000')
       d %>%
         # dendextend::set("branches_lwd", 2) %>%
-        color_branches(k = 2, col = colors[c(1, 3)]) %>%
+        dendextend::color_branches(k = 2, col = 1:2) %>%
         hang.dendrogram %>%
         plot(panel.first = {
           grid(
-            col = colors[8],
+            col = '#ffffff',
             lty = 3,
             nx = NA,
             ny = NULL
