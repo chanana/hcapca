@@ -201,29 +201,32 @@ if (!is.null(parameters$metadata)) {
     header = T,
     data.table = F
   )
-  if (any(duplicates)) {
-    metadata <- metadata[c(!duplicates),]
-  }
-  cols <-
-    colnames(metadata)[2:ncol(metadata)] # all cols except first one
-  metadata <-
-    add_color_column(metadata = metadata, column_names = cols)
-  color_column_names <-
-    colnames(metadata)[str_detect(string = colnames(metadata), pattern = "color")]
-  save_object(saveDirectory = parameters$save_folder, object = "metadata")
-  for (node in nodeIDs) {
-    n <- get_node_position(node)
-    if (length(master_list[[n]]$members) < 4) {
-      print("Three or fewer members; skipping...")
-      next
-    } else {
-      make_colored_hca_plot_pdf(
-        dataframe = df,
-        nodeID = node,
-        outfile = output_folder_hca,
-        metadata = metadata,
-        color_column_names = color_column_names
-      )
+  if (is.null(parameters$single_table)) {
+    if (any(duplicates)) {
+      metadata <- metadata[c(!duplicates),]
+    }
+  } else {
+    cols <-
+      colnames(metadata)[2:ncol(metadata)] # all cols except first one
+    metadata <-
+      add_color_column(metadata = metadata, column_names = cols)
+    color_column_names <-
+      colnames(metadata)[str_detect(string = colnames(metadata), pattern = "color")]
+    save_object(saveDirectory = parameters$save_folder, object = "metadata")
+    for (node in nodeIDs) {
+      n <- get_node_position(node)
+      if (length(master_list[[n]]$members) < 4) {
+        print("Three or fewer members; skipping...")
+        next
+      } else {
+        make_colored_hca_plot_pdf(
+          dataframe = df,
+          nodeID = node,
+          outfile = output_folder_hca,
+          metadata = metadata,
+          color_column_names = color_column_names
+        )
+      }
     }
   }
 } else {
@@ -333,9 +336,9 @@ cat("\n", "-------Generated report.html-------", "\n")
 end_time <- Sys.time()
 
 cat("\n",
-    "Total time taken to run script:",
+    "Total time taken to run script: ",
     format(end_time - start_time),
-    ".\n")
+    ".\n", sep = "")
 
 # phy <- as.phylo.Node(x = get_tree(master_list))
 # pdf(file=file.path(getwd(), "tree.pdf"), width=11, height=8)
