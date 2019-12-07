@@ -5,6 +5,7 @@ start_time <- Sys.time()
 
 # Libraries
 cat("\n", "------loading libraries-------", "\n")
+
 suppressMessages(library(data.table)) # reading data
 suppressMessages(library(stringr)) # parsing row names; regex
 suppressMessages(library(dendextend)) # tree visualization
@@ -76,8 +77,12 @@ if (is.null(parameters$single_table)) {
   df <- fread(
     input = parameters$single_table,
     header = F,
-    data.table = F
+    data.table = F,
+    na.strings = ""
   )
+  if (anyNA(df)) {
+    df[is.na(df)] <- 0
+  }
   if (!is.null(parameters$col_to_remove)) {
     df[, c(parameters$col_to_remove)] <- NULL
   }
@@ -340,8 +345,3 @@ cat("\n",
     format(end_time - start_time),
     ".\n", sep = "")
 
-# phy <- as.phylo.Node(x = get_tree(master_list))
-# pdf(file=file.path(getwd(), "tree.pdf"), width=11, height=8)
-# plot(phy, label.offset=0.2, no.margin=T, show.node.label=T, adj=1)
-# dev.off()
-# hc <- as.hclust.phylo(x = phy)

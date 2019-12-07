@@ -15,7 +15,7 @@ two_letter_node_Names <- function(N = 0) {
   return(TLNN)
 }
 
-change_pathString <- function(oldPathString, dict=TLNN) {
+change_pathString <- function(oldPathString, dict = TLNN) {
   oldPathString <-
     unlist(str_split(string = oldPathString, pattern = "/"))
   newPathString <-
@@ -33,37 +33,38 @@ save_object <- function(saveDirectory,
                         object = NULL,
                         objectName = NULL,
                         objectEnv = .GlobalEnv) {
-    # object must be given as a string (in quotes)
-    # objects must be reloaded with readRDS()
-    if (!dir.exists(saveDirectory)) {
-      dir.create(saveDirectory)
-    }
-    if (is.null(object)) {
-      # save all objects except functions
-      objNames <- Filter(ClassFilter, ls(envir = .GlobalEnv))
-      for (obj in objNames) {
-        objName <- file.path(saveDirectory, paste0(obj, "_obj.RDS"))
-        saveRDS(
-          object = base::get(obj),
-          file = objName,
-          compress = T
-        )
-      }
-    }
-    else {
-      if (is.null(objectName)) {
-        objName = file.path(saveDirectory, paste0(object, "_obj.RDS"))
-      }
-      else {
-        objName = file.path(saveDirectory, paste0(objectName, "_obj.RDS"))
-      }
+  # object must be given as a string (in quotes)
+  # objects must be reloaded with readRDS()
+  if (!dir.exists(saveDirectory)) {
+    dir.create(saveDirectory)
+  }
+  if (is.null(object)) {
+    # save all objects except functions
+    objNames <- Filter(ClassFilter, ls(envir = .GlobalEnv))
+    for (obj in objNames) {
+      objName <- file.path(saveDirectory, paste0(obj, "_obj.RDS"))
       saveRDS(
-        object = base::get(x = object, envir = objectEnv),
+        object = base::get(obj),
         file = objName,
         compress = T
+
       )
     }
   }
+  else {
+    if (is.null(objectName)) {
+      objName = file.path(saveDirectory, paste0(object, "_obj.RDS"))
+    }
+    else {
+      objName = file.path(saveDirectory, paste0(objectName, "_obj.RDS"))
+    }
+    saveRDS(
+      object = base::get(x = object, envir = objectEnv),
+      file = objName,
+      compress = T
+    )
+  }
+}
 
 scale_pareto <- function(df) {
   #returns pareto scaled data
@@ -76,9 +77,14 @@ scale_pareto <- function(df) {
 }
 
 remove_nas <- function(df) {
-  df <- df[, unlist(lapply(df, function(x) !all(is.na(x))))]
+  df <- df[, unlist(lapply(df, function(x)
+    ! all(is.na(x))))]
   return(df)
 }
+
+# remove_zero_columns <- function(df) {
+#   df <- df[, which(colSums(df) != 0)]
+# }
 
 euclidean_distance <- function(x) {
   sqrt(x[1] ^ 2 + x[2] ^ 2)
@@ -93,13 +99,29 @@ add_euclidean_distance <- function(df) {
 select_top_N_points <- function(df, N_points = 5000) {
   # warning: loadings plot must have 3 columns; first two are coordinates,
   # last one is euclidean distance named euc
-  df <- df[order(df$euc, decreasing = TRUE), ]
-  df <- df[1:N_points, ]
+  df <- df[order(df$euc, decreasing = TRUE),]
+  df <- df[1:N_points,]
   return(df)
 }
 
 remove_euclidean_distance_column <- function(df) {
   return(df[, -3])
+}
+
+get_highest_PC <- function(mtx) {
+  # takes a scores plot and returns a dataframe containing each sample sorted by
+  # the top two PCs where that sample stands out.
+  df.sorted <- as.data.frame(apply(
+    X = abs(mtx),
+    MARGIN = 1,
+    FUN = function(x)
+      sort(x, decreasing = T, index.return = T)
+  ))
+  df.sorted <-
+    df.sorted[1:2, grep(pattern = ".ix", x = colnames(df.sorted))]
+  colnames(df.sorted) <- rownames(mtx)
+  rownames(df.sorted) <- c("PC.x", "PC.y")
+  return(df.sorted)
 }
 
 convert_tree_to_dataframe <- function(LIST) {
@@ -207,7 +229,7 @@ pca_based_on_membership <-
            name_list = NULL) {
     # scale -> make correlation matrix -> cluster ->
     # make dendrogram -> add labels
-    df.s <- scale_pareto(df[name_list, ]) # pareto scaled data
+    df.s <- scale_pareto(df[name_list,]) # pareto scaled data
     df.s <- remove_nas(df.s)
     df.pca <- prcomp(df.s, scale. = F, center = F)
     return(df.pca)
@@ -269,7 +291,7 @@ process_node <- function(dataframe = df, id) {
   node <- master_list[[n]]
 
   # Get dataframe
-  df <- dataframe[node$members, ]
+  df <- dataframe[node$members,]
 
   # Scale, get distance metric, cluster, and get dendrogram with labels
   df.s <- scale_pareto(df) # pareto scale the data
@@ -393,7 +415,7 @@ auto_process <- function(dataframe = df,
       for (nodeID in a) {
         cat('\n', '=====')
         process_node(dataframe = dataframe, id = nodeID)
-        cat('\n', '=====','\n','Processed!','\n')
+        cat('\n', '=====', '\n', 'Processed!', '\n')
       }
     }
 
@@ -407,9 +429,11 @@ make_pca_plot <-
            axis1 = 1,
            axis2 = 2,
            max_points_loadings = 5000) {
-    p <- readRDS(file.path(getwd(),
-                           parameters$save_folder,
-                           paste0(nodeID,"_pca_obj.RDS")))
+    p <- readRDS(file.path(
+      getwd(),
+      parameters$save_folder,
+      paste0(nodeID, "_pca_obj.RDS")
+    ))
 
     plt_scores <-
       plot_ly(
@@ -463,10 +487,12 @@ make_pca_html <-
            axis2 = 2,
            outfile = "pca",
            max_points_loadings = 5000) {
-    pca <- make_pca_plot(nodeID=nodeID,
-                         axis1 = axis1,
-                         axis2 = axis2,
-                         max_points_loadings = max_points_loadings)
+    pca <- make_pca_plot(
+      nodeID = nodeID,
+      axis1 = axis1,
+      axis2 = axis2,
+      max_points_loadings = max_points_loadings
+    )
     filename_scores <-
       file.path(getwd(),
                 outfile,
@@ -490,7 +516,7 @@ make_dendrogram <- function(dataframe = df, nodeName) {
   n <- get_node_position(nodeName)
   name_list <- master_list[[n]]$members
 
-  df <- dataframe[name_list, ]
+  df <- dataframe[name_list,]
   df.s <- scale_pareto(df)
   df.s <- remove_nas(df.s)
   df.cor <- cor(x = t(df.s), y = t(df.s)) #correlation matrix
@@ -547,67 +573,97 @@ make_colored_hca_plot_pdf <-
            outfile = "hca",
            metadata,
            color_column_names) {
-  d <- master_list[[get_node_position(nodeID)]]$dend # get dendrogram
+    d <- master_list[[get_node_position(nodeID)]]$dend # get dendrogram
 
-  if (is.null(d)) {
-    d <- make_dendrogram(dataframe = dataframe, nodeID)
+    if (is.null(d)) {
+      d <- make_dendrogram(dataframe = dataframe, nodeID)
+    }
+    color_vector_list <- list()
+
+    # filter metadata so that only matching names
+    for (col in color_column_names) {
+      df_for_legend <- metadata[match(labels(d), metadata[, 1]),]
+      color_vector_list[[col]] <- df_for_legend[, col]
+    }
+
+    if (length(color_vector_list) == 2) {
+      # this means there is a second category with colors so we should
+      # color the labels to show this category
+      labels_colors(d) <- color_vector_list[[2]]
+    }
+
+    number_of_members <-
+      length(labels(d)) # get total number of leaves
+    w = width_of_pdf(numberOfLeaves = number_of_members) # get width
+
+    if (!dir.exists(outfile)) {
+      dir.create(outfile)
+    } # create directory if it doesn't exist
+
+    filename <-
+      file.path(getwd(),
+                outfile,
+                paste0(nodeID, "-", number_of_members, ".pdf"))
+    pdf(file = filename,
+        width = w,
+        height = 9)
+    # par(bg = "#E5E5E5", fg = "#5e5e5e")
+    d %>%
+      dendextend::set("branches_lwd", 2) %>% # make branches' lines wider
+      dendextend::set("leaves_pch", 16) %>% # make leaves points circles
+      dendextend::set("leaves_cex", 2.5) %>% # make circles bigger
+      dendextend::set("leaves_col", color_vector_list[[color_column_names[1]]]) %>% # assign colors to circles
+      # hang.dendrogram %>%
+      plot(panel.first = {
+        grid(
+          col = '#5e5e5e',
+          lty = 3,
+          nx = NA,
+          ny = NULL
+        )
+      })
+    if (length(color_vector_list) == 1) {
+      legend(
+        "topright",
+        legend = unique(df_for_legend[, 2]),
+        fill = unique(df_for_legend[, 3]),
+        border = "black",
+        cex = 1,
+        y.intersp = 0.7,
+        ncol = 2,
+        title = paste0(colnames(metadata)[2], " (circles)")
+      )
+    }
+    if (length(color_vector_list) == 2) {
+      legend(
+        "topright",
+        legend = unique(df_for_legend[, 2]),
+        fill = unique(df_for_legend[, 4]),
+        border = "black",
+        cex = 1,
+        y.intersp = 0.7,
+        ncol = 2,
+        title = paste0(colnames(metadata)[2], " (circles)")
+      )
+      legend(
+        'topleft',
+        legend = unique(df_for_legend[, 3]),
+        fill = unique(df_for_legend[, 5]),
+        border = "black",
+        cex = 1,
+        y.intersp = 0.7,
+        ncol = 2,
+        title = paste0(colnames(metadata)[3], " (labels)")
+      )
+    }
+    dev.off()
+
+    # pdf(file = "legend.pdf", width=7, height=7)
+    # plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
+    # legend("topright", legend = unique(metadata[,2]), fill = unique(metadata[,3]),
+    #        border = "black", cex=0.7, y.intersp = 0.7, ncol=2)
+    # dev.off()
   }
-  color_vector_list <- list()
-
-  # filter metadata so that only matching names
-  for (col in color_column_names) {
-    df_for_legend <- metadata[match(labels(d), metadata[,1]), ]
-    color_vector_list[[col]] <- df_for_legend[ ,col]
-  }
-
-  if (length(color_vector_list) == 2) {
-    # this means there is a second category with colors so we should
-    # color the labels to show this category
-    labels_colors(d) <- color_vector_list[[2]]
-  }
-
-  number_of_members <- length(labels(d)) # get total number of leaves
-  w = width_of_pdf(numberOfLeaves = number_of_members) # get width
-
-  if (!dir.exists(outfile)) {
-    dir.create(outfile)
-  } # create directory if it doesn't exist
-
-  filename <-
-    file.path(getwd(),
-              outfile,
-              paste0(nodeID, "-", number_of_members, ".pdf"))
-  pdf(file = filename, width = w, height = 9)
-  # par(bg = "#E5E5E5", fg = "#5e5e5e")
-  d %>%
-    dendextend::set("branches_lwd", 2) %>% # make branches' lines wider
-    dendextend::set("leaves_pch", 16) %>% # make leaves points circles
-    dendextend::set("leaves_cex", 2.5) %>% # make circles bigger
-    dendextend::set("leaves_col", color_vector_list[[color_column_names[1]]]) %>% # assign colors to circles
-    # hang.dendrogram %>%
-    plot(panel.first = {grid(col = '#5e5e5e', lty = 3, nx = NA, ny = NULL)})
-  legend("topright",
-         legend = unique(df_for_legend[,2]),
-         fill = unique(df_for_legend[,4]),
-         border = "black",
-         cex=1, y.intersp = 0.7, ncol=2,
-         title = paste0(colnames(metadata)[2], " (circles)"))
-  if (length(color_vector_list) == 2) {
-    legend('topleft',
-         legend = unique(df_for_legend[,3]),
-         fill = unique(df_for_legend[,5]),
-         border = "black",
-         cex=1, y.intersp = 0.7, ncol=2,
-         title = paste0(colnames(metadata)[3], " (labels)"))
-  }
-  dev.off()
-
-  # pdf(file = "legend.pdf", width=7, height=7)
-  # plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
-  # legend("topright", legend = unique(metadata[,2]), fill = unique(metadata[,3]),
-  #        border = "black", cex=0.7, y.intersp = 0.7, ncol=2)
-  # dev.off()
-}
 
 add_color_column <- function(metadata, column_names) {
   # make sure the columns are factors
@@ -615,14 +671,15 @@ add_color_column <- function(metadata, column_names) {
 
   # for each column, add a corresponding color column named <colname>.color
   for (name in column_names) {
-    metadata[paste0(name,".color")] <- as.numeric(unlist(metadata[name]))
+    metadata[paste0(name, ".color")] <-
+      as.numeric(unlist(metadata[name]))
   }
   return(metadata)
 }
 
 width_of_pdf <- function(numberOfLeaves) {
   # increase width by 16in for every 25 extra leaves
-  w = (as.integer(numberOfLeaves/50)+1)*16
+  w = (as.integer(numberOfLeaves / 50) + 1) * 16
   return(w)
 }
 
