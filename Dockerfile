@@ -7,6 +7,7 @@ RUN install2.r --error \
   data.tree \
   dendextend \
   plotly \
-  shinydashboard
+  shinydashboard \
+  DT
 
 ENV PATH="/srv/shiny-server/hcapca:${PATH}"
