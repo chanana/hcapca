@@ -147,8 +147,18 @@ Navigate to **http://your.ip:3838/hcapca** where you should replace `your.ip` wi
     C122
     B455
 
-#### 2. `Variables_m.dat`, `Variables_t.dat`, and `Table.dat`
-**Contains:** m/z, retention times, and intensity values   
+#### 2. `Variables_m.dat`  
+**Contains:** m/z values separated by spaces _all on one line_. Keep them in the same order as the retention time and table data.
+    
+    198.0390 758.3503 0.0000 395.1877 366.2404 ...
+
+#### 3. `Variables_t.dat` 
+**Contains:** retention time values (in minutes or seconds) separated by spaces _all on one line_. Keep them in the same order as the m/z and table data. 
+
+    12.3 8.0 7.3 2.02 12.3 ...
+
+#### 4. `Table.dat`
+**Contains:** intensity values   
 **Format:** Space separated values; numbers only. Each line contains the values corresponding to the sample names from `Analyses.dat` above.
     
     198.0390 758.3503 0.0000 395.1877 366.2404 ...
