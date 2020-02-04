@@ -97,13 +97,17 @@ if (is.null(parameters$single_table)) {
 
   df <- as.data.frame(sapply(df, function(x) as.numeric(as.character(x))))
 
-  # # find columns that are completely zero and remove them
-  # col_to_keep <- which(colSums(df) != 0)
-  # df <- df[, col_to_keep]
+  duplicates <- duplicated(dfrows)
+  if (any(duplicates)) {
+    # if any duplicates are found
+    df <- df[c(!duplicates),] # remove corresponding rows from data
+    dfrows <- dfrows[c(!duplicates)] # remove duplicated samples
+  }
 
   rownames(df) <- dfrows
   colnames(df) <- dfcols
 }
+
 save_object(saveDirectory = parameters$save_folder, object = "df")
 cat("\n", "------read data-------", "\n")
 cat("\n", "------calculating pca, hca-------", "\n")
@@ -161,16 +165,17 @@ cat("\n", "------processed tree-------", "\n")
 # Setup Directories; hca; pca
 output_folder_hca <-
   file.path(parameters$output_folder, parameters$output_folder_hca)
-output_folder_pca <-
-  file.path(parameters$output_folder, parameters$output_folder_pca)
+if (parameters$output_pca) {
+  output_folder_pca <-
+    file.path(parameters$output_folder, parameters$output_folder_pca)
+  if (!dir.exists(output_folder_pca)) {
+    dir.create(output_folder_pca, recursive = TRUE)
+  }
+}
 output_folder_report <-
   file.path(parameters$output_folder)
-
 if (!dir.exists(output_folder_hca)) {
   dir.create(output_folder_hca, recursive = TRUE)
-}
-if (!dir.exists(output_folder_pca)) {
-  dir.create(output_folder_pca, recursive = TRUE)
 }
 
 # Get list of node names for later functions
