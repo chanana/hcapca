@@ -531,26 +531,33 @@ make_dendrogram <- function(dataframe = df, nodeName) {
 
 make_hca_plot_pdf <-
   function(dataframe = df,
-           nodeName,
-           w = 16,
-           h = 9,
-           lwd = 3,
+           nodeID,
+           width = 16,
+           height = 9,
+           lwd = 2,
            outfile = "hca") {
-    n <- get_node_position(nodeName)
+    n <- get_node_position(nodeID)
     number_of_members <- length(master_list[[n]]$members)
     d <- master_list[[n]]$dend
 
+    width = width_of_pdf(numberOfLeaves = number_of_members) # get width
+
     if (is.null(d)) {
-      d <- make_dendrogram(dataframe = dataframe, nodeName)
+      d <- make_dendrogram(dataframe = dataframe, nodeName = nodeID)
     }
 
     filename <-
       file.path(getwd(),
                 outfile,
-                paste0(nodeName, "-", number_of_members, ".pdf"))
+                paste0(nodeID, "-", number_of_members, ".pdf"))
+
+    if (!dir.exists(outfile)) {
+      dir.create(outfile)
+    } # create directory if it doesn't exist
+
     pdf(file = filename,
-        width = w,
-        height = h)
+        width = width,
+        height = height)
     par(bg = "#d3d3d3", fg = '#000000')
     d %>%
       dendextend::set("branches_lwd", lwd) %>%

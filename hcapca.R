@@ -248,7 +248,7 @@ if (!is.null(parameters$metadata)) {
       print("Three or fewer members; skipping...")
       next
     } else {
-      make_hca_plot_pdf(nodeName = node,
+      make_hca_plot_pdf(nodeID = node,
                         dataframe = df,
                         outfile = output_folder_hca)
     }
