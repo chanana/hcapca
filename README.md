@@ -64,7 +64,7 @@ Use the `Powershell` **(not x86 or ISE, just Powershell)** and type:
    --workdir /srv/shiny-server/hcapca `
    schanana/hcapca:latest hcapca.R
  ```
- Be sure to replace `/username/path/to/base/directory` in the above command with the path to the `base` directory.  
+ Be sure to replace `/username/path/to/base/directory` in the above command with the path to the `base` directory. 
 
  #### 4.3 For Windows 7
 Use the `Docker Quickstart Terminal`, `cd` to the `base` directory and run:
@@ -76,6 +76,7 @@ Use the `Docker Quickstart Terminal`, `cd` to the `base` directory and run:
     --workdir /srv/shiny-server/hcapca \
     schanana/hcapca:latest hcapca.R
   ```
+You can use `devel` in place of `latest` in the last argument for a more cutting edge version.
 
 ### Regardless of OS, a folder called `output` should be created within the `base` directory with the following structure:
 ```
