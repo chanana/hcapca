@@ -52,7 +52,7 @@ _Note: The <b><span style="color:blue">`base`</span></b> directory is where you 
    --interactive \
    --volume $(pwd):/srv/shiny-server/hcapca:rw \
    --workdir /srv/shiny-server/hcapca \
-   schanana/hcapca:latest hcapca.R
+   schanana/hcapca:devel hcapca.R
   ```
  #### 4.2 For Windows 10
 Use the `Powershell` **(not x86 or ISE, just Powershell)** and type:
@@ -62,7 +62,7 @@ Use the `Powershell` **(not x86 or ISE, just Powershell)** and type:
    --rm `
    --volume //c/Users/username/path/to/base/directory:/srv/shiny-server/hcapca `
    --workdir /srv/shiny-server/hcapca `
-   schanana/hcapca:latest hcapca.R
+   schanana/hcapca:devel hcapca.R
  ```
  Be sure to replace `/username/path/to/base/directory` in the above command with the path to the `base` directory.  
 
@@ -74,7 +74,7 @@ Use the `Docker Quickstart Terminal`, `cd` to the `base` directory and run:
     --rm \
     --volume $(pwd):/srv/shiny-server/hcapca:rw \
     --workdir /srv/shiny-server/hcapca \
-    schanana/hcapca:latest hcapca.R
+    schanana/hcapca:devel hcapca.R
   ```
 
 ### Regardless of OS, a folder called `output` should be created within the `base` directory with the following structure:
@@ -103,7 +103,7 @@ docker run --rm \
    --volume $(pwd):/srv/shiny-server/hcapca:rw \
    --workdir /srv/shiny-server/hcapca/ \
    --publish 3838:3838 \
-   schanana/hcapca:latest
+   schanana/hcapca:devel
 ```
 Navigate to **http://127.0.0.1:3838/hcapca** to view your results in an interactive website!
 
@@ -118,7 +118,7 @@ docker run --rm `
    --volume //c/Users/<username>/path/to/base/directory:/srv/shiny-server/hcapca:rw `
    --workdir /srv/shiny-server/hcapca `
    --publish 3838:3838 `
-   schanana/hcapca:latest
+   schanana/hcapca:devel
    ```
 As before, replace `username/path/to/base/directory` with the path to the `base` directory and navigate to **http://127.0.0.1:3838/hcapca** to view your results in an interactive website!
 
@@ -133,7 +133,7 @@ As before, replace `username/path/to/base/directory` with the path to the `base`
    --volume "$(pwd)":/srv/shiny-server/hcapca \
    --workdir /srv/shiny-server/hcapca \
    --publish 3838:3838 \
-   schanana/hcapca:latest
+   schanana/hcapca:devel
  ```
 Navigate to **http://your.ip:3838/hcapca** where you should replace `your.ip` with the ip shown when docker starts up - as mentioned in section #3 Housekeeping above.
 
