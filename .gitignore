@@ -1,3 +1,8 @@
+# python files
+.ipynb_checkpoints/
+.venv/
+notebooks/
+
 # Output and data files
 data/
 output/
