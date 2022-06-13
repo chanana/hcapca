@@ -18,24 +18,31 @@ default:
     # output directory for pca, ignored if output_pca is FALSE
     output_folder_pca: "pca"
 
-    # Input table locations
-    spectral_table: "data/Table.dat"
-    mass_table: "data/Variables_m.dat"
-    time_table: "data/Variables_t.dat"
-    sample_names: "data/Analyses.dat"
+    # Input table locations; see FORMAT for details
+    # spectral_table: "data/Table.dat"
+    # mass_table: "data/Variables_m.dat"
+    # time_table: "data/Variables_t.dat"
+    # sample_names: "data/Analyses.dat"
+
+    # Input Single Table Location:
+    single_table: "data/20191030_Joiner.csv"
+
+    # Transpose?
+    transpose: TRUE
+    
+    # optional metadata table; see FORMAT for details
+    metadata: "data/metadata_2.txt"
 
     # Save directory for objects
     save_folder: "save_points"
     
-    # Run Shiny App to see results?
-    # Accepts: TRUE, FALSE
-    run_shiny_app: TRUE
-
     # Pattern for sample name matching; if you do not need pattern matching,
     # please enter ".*" as the pattern.
     # Accepts: regex patterns
     row_name_pattern: ".*"
 
+    # column to remove from original table before transposition
+    # col_to_remove: 2
 
     # Generate tree based on number of members or variance of cluster
     # Accepts: "num" or "var"
@@ -47,5 +54,5 @@ default:
 
     # The number of maximum points to display on a loadings plot
     # use this if script gets killed because of OOM (Out of Memory)
-    max_points_loadings: 5000
+    max_points_loadings: 500
 ... 

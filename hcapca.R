@@ -5,6 +5,7 @@ start_time <- Sys.time()
 
 # Libraries
 cat("\n", "------loading libraries-------", "\n")
+
 suppressMessages(library(data.table)) # reading data
 suppressMessages(library(stringr)) # parsing row names; regex
 suppressMessages(library(dendextend)) # tree visualization
@@ -16,71 +17,107 @@ cat("\n", "------loaded libraries-------", "\n")
 
 # Variables
 parameters <- config::get(file = "config_file.yaml")
-source(file.path(parameters$input_folder_accessory_script, "accessory_functions.R"))
+source(file.path(
+  parameters$input_folder_accessory_script,
+  "accessory_functions.R"
+))
 
 cat("\n", "------reading data-------", "\n")
 
-# Read files
-df <- fread(
-  input = parameters$spectral_table,
-  header = F,
-  data.table = T
-)
-dfrows <- fread(
-  input = parameters$sample_names,
-  header = F,
-  data.table = F,
-  sep = NULL
-)
-dfcolM <- fread(input = parameters$mass_table,
-                header = F,
-                data.table = F)
-dfcolT <- fread(input = parameters$time_table,
-                header = F,
-                data.table = F)
+if (is.null(parameters$single_table) &&
+    is.null(parameters$spectral_table)) {
+  stop("Can't have both a single table and multiple files. Comment out one or
+       the other secion in the config.yaml file")
+}
 
-# ~~~~~ Fix row and column names ~~~~~
-dfrows <-
+if (is.null(parameters$single_table)) {
+  df <- fread(
+    input = parameters$spectral_table,
+    header = F,
+    data.table = F
+  )
+  dfrows <- fread(
+    input = parameters$sample_names,
+    header = F,
+    data.table = F,
+    sep = NULL
+  )
+  dfcolM <- fread(input = parameters$mass_table,
+                  header = F,
+                  data.table = F)
+  dfcolT <- fread(input = parameters$time_table,
+                  header = F,
+                  data.table = F)
+
+  # ~~~~~ Fix row and column names ~~~~~
+  dfrows <-
     str_extract(string = dfrows[, 1], pattern = parameters$row_name_pattern)
 
-# check for duplicated rows
-duplicates <- duplicated(dfrows)
-if (any(duplicates)) {
-  # if any duplicates are found
-  df <- df[c(!duplicates), ] # remove corresponding rows from data
-  dfrows <- dfrows[c(!duplicates)] # remove duplicated samples
+  # check for duplicated rows
+  duplicates <- duplicated(dfrows)
+  if (any(duplicates)) {
+    # if any duplicates are found
+    df <- df[c(!duplicates),] # remove corresponding rows from data
+    dfrows <- dfrows[c(!duplicates)] # remove duplicated samples
+  }
+
+  # # find columns that are completely zero and remove them
+  # col_to_keep <- which(colSums(df) != 0)
+  # df <- df[, col_to_keep]
+
+  # combine mass and time into one string separated by underscore
+  dfcol <- paste0(dfcolM, "_", dfcolT)
+  # # There are fewer columns in the original dataset because of the removal step. Select only the columns common to both the original data and the column names.
+  # dfcol <- dfcol[col_to_keep]
+
+  colnames(df) <- dfcol
+  df <- as.data.frame(df)
+  rownames(df) <- dfrows
+} else {
+  df <- fread(
+    input = parameters$single_table,
+    header = F,
+    data.table = F,
+    na.strings = ""
+  )
+  if (anyNA(df)) {
+    df[is.na(df)] <- 0
+  }
+  if (!is.null(parameters$col_to_remove)) {
+    df[, c(parameters$col_to_remove)] <- NULL
+  }
+  if (parameters$transpose) { # if it needs transposition
+    df <- as.data.frame(t(as.matrix(df))) # transpose it
+  }
+
+  dfrows <- as.character(df[2:nrow(df),1])
+  dfcols <- as.character(unlist(df[1,2:ncol(df)]))
+  df[, 1] <- NULL
+  df <- df[2:nrow(df), ]
+
+  df <- as.data.frame(sapply(df, function(x) as.numeric(as.character(x))))
+
+  duplicates <- duplicated(dfrows)
+  if (any(duplicates)) {
+    # if any duplicates are found
+    df <- df[c(!duplicates),] # remove corresponding rows from data
+    dfrows <- dfrows[c(!duplicates)] # remove duplicated samples
+  }
+
+  rownames(df) <- dfrows
+  colnames(df) <- dfcols
 }
 
-# find columns that are completely zero and remove them
-col_to_delete <-
-  which(colSums(df) == 0, arr.ind = TRUE) #returns a named int
-if (length(col_to_delete) != 0) {
-  # there are columns that are completely zero
-  df[, (col_to_delete) := NULL]
-}
-
-# combine mass and time into one string separated by underscore
-dfcol <- paste0(dfcolM, "_", dfcolT)
-
-# There are fewer columns in the original dataset because of the zero removal step. Select only the columns common to both the original data and the column names.
-if (length(col_to_delete) != 0) {
-  dfcol <- dfcol[-c(col_to_delete)]
-}
-colnames(df) <- dfcol
-
-df <- as.data.frame(df)
-rownames(df) <- dfrows
 save_object(saveDirectory = parameters$save_folder, object = "df")
-
 cat("\n", "------read data-------", "\n")
-
 cat("\n", "------calculating pca, hca-------", "\n")
 
 # ~~~~ scale -> distance -> cluster -> dendgrogram -> label ~~~~
-df.s = scale_pareto(df)
-df.cor = cor(x = t(df.s), y = t(df.s)) # correlation matrix
-df.clust = hclust(as.dist(1 - df.cor), method = "average") # clusters
-df.dend = as.dendrogram(df.clust) # as dendrogram object
+df.s <- scale_pareto(df)
+df.s <- remove_nas(df.s)
+df.cor <- cor(x = t(df.s), y = t(df.s)) # correlation matrix
+df.clust <- hclust(as.dist(1 - df.cor), method = "average") # clusters
+df.dend <- as.dendrogram(df.clust) # as dendrogram object
 labels(df.dend) <-
   rownames(df)[order.dendrogram(df.dend)] #label each leaf
 df.pca <- prcomp(df.s, center = F, scale. = F) # PCA of all samples
@@ -97,7 +134,11 @@ master_list[[1]] <-
     isLeaf = TRUE,
     var = df.pca$sdev ^ 2 / sum(df.pca$sdev ^ 2) * 100
   )
-save_object(saveDirectory = parameters$save_folder, object = "df.pca", objectName = "b_pca")
+save_object(
+  saveDirectory = parameters$save_folder,
+  object = "df.pca",
+  objectName = "b_pca"
+)
 
 cat("\n", "------processing tree-------", "\n")
 
@@ -124,61 +165,99 @@ cat("\n", "------processed tree-------", "\n")
 # Setup Directories; hca; pca
 output_folder_hca <-
   file.path(parameters$output_folder, parameters$output_folder_hca)
-output_folder_pca <-
+if (parameters$output_pca) {
+  output_folder_pca <-
     file.path(parameters$output_folder, parameters$output_folder_pca)
+  if (!dir.exists(output_folder_pca)) {
+    dir.create(output_folder_pca, recursive = TRUE)
+  }
+}
 output_folder_report <-
   file.path(parameters$output_folder)
-
 if (!dir.exists(output_folder_hca)) {
   dir.create(output_folder_hca, recursive = TRUE)
 }
-if (!dir.exists(output_folder_pca)) {
-  dir.create(output_folder_pca, recursive = TRUE)
-}
 
 # Get list of node names for later functions
-nodeNames <- unlist(lapply(master_list, `[[`, "ID"))
+nodeIDs <- unlist(lapply(master_list, `[[`, "ID"))
 
-# Mondrian Palette
+# taken from the calc palette from ggthemes
+# https://github.com/jrnold/ggthemes/blob/master/R/calc.R
 colors = c(
-  "#0f7fbf",
-  # 1. blue
-  "#fce317",
-  # 2. yellow
-  "#f70f0f",
-  # 3. red
-  "#202332",
-  # 4. black-purple
-  "#8f8e78",
-  # 5. gray-green
-  "#f0f0f0",
-  # 6. gray94 (light gray)
-  "#5e5e5e",
-  # 7. gray37 (medium gray)
-  "#ffffff"
-) # 8. white
+  "#004586",
+  "#ff420e",
+  "#ffd320",
+  "#579d1c",
+  "#7e0021",
+  "#83caff",
+  "#314004",
+  "#aecf00",
+  "#4b1f6f",
+  "#ff950e",
+  "#c5000b",
+  "#0084d1"
+)
 save_object(saveDirectory = parameters$save_folder, object = "colors")
+original_palette <- palette() # store original palette
+palette(colors)
+
 cat("\n", "------making HCA plots-------", "\n")
 
-# make HCA for each node
-for (node in nodeNames) {
-  n <- get_node_position(node)
-  if (length(master_list[[n]]$members) < 4) {
-    print("Three or fewer members; skipping...")
-    next
+if (!is.null(parameters$metadata)) {
+  cat("\n", "------metadata found, colored HCA!-------", "\n")
+  metadata <- fread(
+    input = parameters$metadata,
+    sep = "\t",
+    header = T,
+    data.table = F
+  )
+  if (is.null(parameters$single_table)) {
+    if (any(duplicates)) {
+      metadata <- metadata[c(!duplicates),]
+    }
   } else {
-    make_hca_plot_pdf(
-      nodeName = node,
-      dataframe = df,
-      outfile = output_folder_hca
-    )
+    cols <-
+      colnames(metadata)[2:ncol(metadata)] # all cols except first one
+    metadata <-
+      add_color_column(metadata = metadata, column_names = cols)
+    color_column_names <-
+      colnames(metadata)[str_detect(string = colnames(metadata), pattern = "color")]
+    save_object(saveDirectory = parameters$save_folder, object = "metadata")
+    for (node in nodeIDs) {
+      n <- get_node_position(node)
+      if (length(master_list[[n]]$members) < 4) {
+        print("Three or fewer members; skipping...")
+        next
+      } else {
+        make_colored_hca_plot_pdf(
+          dataframe = df,
+          nodeID = node,
+          outfile = output_folder_hca,
+          metadata = metadata,
+          color_column_names = color_column_names
+        )
+      }
+    }
   }
+} else {
+  cat("\n", "------no metadata file found------", "\n")
+  # make standard HCA for each node
+  for (node in nodeIDs) {
+    n <- get_node_position(node)
+    if (length(master_list[[n]]$members) < 4) {
+      print("Three or fewer members; skipping...")
+      next
+    } else {
+      make_hca_plot_pdf(nodeID = node,
+                        dataframe = df,
+                        outfile = output_folder_hca)
+    }
+  }
+  cat("\n", "-------made HCA plots-------", "\n")
 }
 
-cat("\n", "-------made HCA plots-------", "\n")
-
 # add combined_path
-for (node in nodeNames) {
+for (node in nodeIDs) {
   add_links_attribute(node)
 }
 
@@ -190,12 +269,12 @@ m = max(unlist(lapply(
 )))
 
 # fix links attribute with spaces
-for (node in nodeNames) {
+for (node in nodeIDs) {
   pad_with_spaces(node)
 }
 
 # fix var in list
-for (node in nodeNames) {
+for (node in nodeIDs) {
   n <- get_node_position(node)
   if (is.null(master_list[[n]]$var)) {
     master_list[[n]]$var <- 0
@@ -203,7 +282,7 @@ for (node in nodeNames) {
 }
 
 TLNN <- two_letter_node_Names(N = length(master_list))
-names(TLNN) <- nodeNames
+names(TLNN) <- nodeIDs
 
 for (i in seq_along(master_list)) {
   master_list[[i]]$name <- TLNN[master_list[[i]]$ID]
@@ -236,7 +315,7 @@ if (parameters$output_pca) {
     } else {
       pca <- readRDS(file = obj)
       make_pca_html(
-        nodeID=nodeID,
+        nodeID = nodeID,
         axis1 = 1,
         axis2 = 2,
         outfile = output_folder_pca,
@@ -266,10 +345,8 @@ cat("\n", "-------Generated report.html-------", "\n")
 
 end_time <- Sys.time()
 
-cat("\n", "Total time taken to run script:", format(end_time - start_time), ".\n")
+cat("\n",
+    "Total time taken to run script: ",
+    format(end_time - start_time),
+    ".\n", sep = "")
 
-# phy <- as.phylo.Node(x = get_tree(master_list))
-# pdf(file=file.path(getwd(), "tree.pdf"), width=11, height=8)
-# plot(phy, label.offset=0.2, no.margin=T, show.node.label=T, adj=1)
-# dev.off()
-# hc <- as.hclust.phylo(x = phy)

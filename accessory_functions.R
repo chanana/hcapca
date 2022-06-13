@@ -3,9 +3,9 @@
 two_letter_node_Names <- function(N = 0) {
   a = rep(NA, length(letters) ^ 2)
   count = 1
-  for (i in letters) {
+  for (nodeID in letters) {
     for (j in letters) {
-      a[count] = paste0(i, j)
+      a[count] = paste0(nodeID, j)
       count = count + 1
     }
   }
@@ -15,7 +15,7 @@ two_letter_node_Names <- function(N = 0) {
   return(TLNN)
 }
 
-change_pathString <- function(oldPathString, dict=TLNN) {
+change_pathString <- function(oldPathString, dict = TLNN) {
   oldPathString <-
     unlist(str_split(string = oldPathString, pattern = "/"))
   newPathString <-
@@ -33,37 +33,38 @@ save_object <- function(saveDirectory,
                         object = NULL,
                         objectName = NULL,
                         objectEnv = .GlobalEnv) {
-    # object must be given as a string (in quotes)
-    # objects must be reloaded with readRDS()
-    if (!dir.exists(saveDirectory)) {
-      dir.create(saveDirectory)
-    }
-    if (is.null(object)) {
-      # save all objects except functions
-      objNames <- Filter(ClassFilter, ls(envir = .GlobalEnv))
-      for (obj in objNames) {
-        objName <- file.path(saveDirectory, paste0(obj, "_obj.RDS"))
-        saveRDS(
-          object = base::get(obj),
-          file = objName,
-          compress = T
-        )
-      }
-    }
-    else {
-      if (is.null(objectName)) {
-        objName = file.path(saveDirectory, paste0(object, "_obj.RDS"))
-      }
-      else {
-        objName = file.path(saveDirectory, paste0(objectName, "_obj.RDS"))
-      }
+  # object must be given as a string (in quotes)
+  # objects must be reloaded with readRDS()
+  if (!dir.exists(saveDirectory)) {
+    dir.create(saveDirectory)
+  }
+  if (is.null(object)) {
+    # save all objects except functions
+    objNames <- Filter(ClassFilter, ls(envir = .GlobalEnv))
+    for (obj in objNames) {
+      objName <- file.path(saveDirectory, paste0(obj, "_obj.RDS"))
       saveRDS(
-        object = base::get(x = object, envir = objectEnv),
+        object = base::get(obj),
         file = objName,
         compress = T
+
       )
     }
   }
+  else {
+    if (is.null(objectName)) {
+      objName = file.path(saveDirectory, paste0(object, "_obj.RDS"))
+    }
+    else {
+      objName = file.path(saveDirectory, paste0(objectName, "_obj.RDS"))
+    }
+    saveRDS(
+      object = base::get(x = object, envir = objectEnv),
+      file = objName,
+      compress = T
+    )
+  }
+}
 
 scale_pareto <- function(df) {
   #returns pareto scaled data
@@ -75,10 +76,15 @@ scale_pareto <- function(df) {
   ))
 }
 
-remove_zeros <- function(df) {
-  sumcol = colSums(df)
-  df = df[, sumcol != 0] # select only the non zero sum columns
+remove_nas <- function(df) {
+  df <- df[, unlist(lapply(df, function(x)
+    ! all(is.na(x))))]
+  return(df)
 }
+
+# remove_zero_columns <- function(df) {
+#   df <- df[, which(colSums(df) != 0)]
+# }
 
 euclidean_distance <- function(x) {
   sqrt(x[1] ^ 2 + x[2] ^ 2)
@@ -93,13 +99,29 @@ add_euclidean_distance <- function(df) {
 select_top_N_points <- function(df, N_points = 5000) {
   # warning: loadings plot must have 3 columns; first two are coordinates,
   # last one is euclidean distance named euc
-  df <- df[order(df$euc, decreasing = TRUE), ]
-  df <- df[1:N_points, ]
+  df <- df[order(df$euc, decreasing = TRUE),]
+  df <- df[1:N_points,]
   return(df)
 }
 
 remove_euclidean_distance_column <- function(df) {
   return(df[, -3])
+}
+
+get_highest_PC <- function(mtx) {
+  # takes a scores plot and returns a dataframe containing each sample sorted by
+  # the top two PCs where that sample stands out.
+  df.sorted <- as.data.frame(apply(
+    X = abs(mtx),
+    MARGIN = 1,
+    FUN = function(x)
+      sort(x, decreasing = T, index.return = T)
+  ))
+  df.sorted <-
+    df.sorted[1:2, grep(pattern = ".ix", x = colnames(df.sorted))]
+  colnames(df.sorted) <- rownames(mtx)
+  rownames(df.sorted) <- c("PC.x", "PC.y")
+  return(df.sorted)
 }
 
 convert_tree_to_dataframe <- function(LIST) {
@@ -204,19 +226,11 @@ unexplored_nodes <- function(nameOrNumber) {
 
 pca_based_on_membership <-
   function(dataframe = df,
-           name_list = NULL,
-           scaled_data = NULL) {
-    # if supplied with scaled data, skip the next block
-    if (is.null(scaled_data)) {
-      df <- remove_zeros(dataframe[name_list, ])
-
-      # scale -> make correlation matrix -> cluster ->
-      # make dendrogram -> add labels
-      df.s <- scale_pareto(df) # pareto scaled data
-    } else {
-      df.s <- scaled_data
-    }
-
+           name_list = NULL) {
+    # scale -> make correlation matrix -> cluster ->
+    # make dendrogram -> add labels
+    df.s <- scale_pareto(df[name_list,]) # pareto scaled data
+    df.s <- remove_nas(df.s)
     df.pca <- prcomp(df.s, scale. = F, center = F)
     return(df.pca)
   }
@@ -230,35 +244,41 @@ pca_based_on_node <- function(dataframe = df, nodeName) {
 
 explained_variance_of_node <-
   function(dataframe = df,
-           nameOfNode = NULL,
+           nodeID = NULL,
            position = NULL,
-           scaled_data = NULL,
            saveDirectory = saveDirectory) {
     # returns a vector of explained variance for a given node; hopefully not all
     # three are null at any one time
 
     # retrieve node from list if name supplied
-    if (!is.null(nameOfNode)) {
-      n <- get_node_position(nameOfNode)
+    if (is.null(position)) {
+      n <- get_node_position(nodeID)
     } else {
       n <- position
     }
 
-    pca.env <<- new.env()
-    # calculate pca of node based on its members if is supplied instead
-    pca.env$p <-
-      pca_based_on_membership(dataframe = dataframe, master_list[[n]]$members, scaled_data)
+    # if variance array has already been calculated, return it
+    nodeVariance = master_list[[n]]$var
+    if (!is.null(nodeVariance)) {
+      return(nodeVariance)
+    } else {
+      pca.env <<- new.env()
+      # calculate pca of node based on its members if is supplied instead
+      pca.env$p <-
+        pca_based_on_membership(dataframe = dataframe,
+                                name_list = master_list[[n]]$members)
 
-    save_object(
-      saveDirectory = saveDirectory,
-      object = "p",
-      objectName = paste0(master_list[[n]]$ID, "_pca"),
-      objectEnv = pca.env
-    )
+      save_object(
+        saveDirectory = saveDirectory,
+        object = "p",
+        objectName = paste0(master_list[[n]]$ID, "_pca"),
+        objectEnv = pca.env
+      )
 
-    # the explained variance in a vector
-    v <- pca.env$p$sdev ^ 2 / sum(pca.env$p$sdev ^ 2) * 100
-    return(v)
+      # the explained variance in a vector
+      v <- pca.env$p$sdev ^ 2 / sum(pca.env$p$sdev ^ 2) * 100
+      return(v)
+    }
   }
 
 process_node <- function(dataframe = df, id) {
@@ -270,11 +290,12 @@ process_node <- function(dataframe = df, id) {
   # node is then just an element from the master_list with the correct id
   node <- master_list[[n]]
 
-  # Get dataframe and remove zeroes
-  df <- remove_zeros(dataframe[node$members, ])
+  # Get dataframe
+  df <- dataframe[node$members,]
 
   # Scale, get distance metric, cluster, and get dendrogram with labels
   df.s <- scale_pareto(df) # pareto scale the data
+  df.s <- remove_nas(df.s) # remove any NaNs
   df.cor <- cor(x = t(df.s), y = t(df.s)) # correlation matrix
   df.clust <-
     hclust(as.dist(1 - df.cor), method = "average") # clusters
@@ -318,161 +339,101 @@ process_node <- function(dataframe = df, id) {
       pathString = rightChildPathString,
       isLeaf = TRUE
     )
-  cat(paste0("\n", "[4/4] made right child called: ", rightChildID))
+  cat(paste0("\n", "[4/4] made right child called: ", rightChildID, "\n"))
 
   # set isLeaf option of current node to FALSE
   master_list[[n]]$isLeaf <<- FALSE
 }
 
-# start_gui <- function(dataframe = df) {
-#   while (TRUE) {
-#     cat(
-#       '\nYou can:
-#       1. Type the name of a node to process, or
-#       2. Type "tree" to print the current tree structure, or
-#       3. Type "show" to list nodes that have not been expanded yet, or
-#       4. Type "exit" to end this prompt.'
-#     )
-#     answer <- readline(prompt = "--> ")
-#     answer <- str_to_lower(answer)
+auto_process <- function(dataframe = df,
+                         numOrVar = "num",
+                         N = 30,
+                         saveDirectory = saveDirectory) {
+  # check if 'N' is a number
+  if (!is.numeric(N)) {
+    return("Not a number!")
+  }
 
-#     # check if 'exit'
-#     if (identical(answer, 'exit')) {
-#       break
-#     }
-#     # check if 'tree'
-#     if (identical(answer, 'tree')) {
-#       display_tree()
-#       next
-#     }
-#     # check if 'show'
-#     if (identical(answer, 'show')) {
-#       cat('--------\n')
-#       print(cbind(
-#         'name' = unexplored_nodes('name'),
-#         'number of members' = unexplored_nodes('number')
-#       ))
-#       cat('--------\n')
-#       next
-#     }
+  # default assumes "num" but other option is "var" for a variance cutoff
+  if (identical(numOrVar, "num")) {
+    if (N %% 1 != 0) {
+      return("Not a whole number!")
+    } # must be a whole number for option 'num
 
-#     # check if 'auto'
-#     if (identical(answer, 'auto')) {
-#       while (TRUE) {
-#         answer <-
-#           str_to_lower(readline(prompt = '--- type "v" for variance or "n" for number > '))
-#         if (identical(answer, 'v')) {
-#           answer <- readline(prompt = 'enter a minimum variance threshold > ')
+    # if the tests pass, then we know to process based on a number cutoff
+    while (TRUE) {
+      a <- unexplored_nodes('name')
+      b <- unexplored_nodes('number')
 
-#         }
-#       }
-#     }
-#     # Now, we know that the answer isn't one of the other options, we
-#     # can query the list to get the position of the node
-#     n <- get_node_position(answer)
+      # hopefully, the two vectors are the same length
+      a <- a[b > N]
 
-#     # check if node name was typed incorrectly
-#     if (n == -1) {
-#       cat("\n Node name not found. Please try again. \n")
-#       next
-#     }
-#     # check if node is a leaf; leaves are nodes that have not been processed yet
-#     if (!master_list[[n]]$isLeaf) {
-#       cat('\nThat node has already been processed. Try a different node.\n')
-#       next
-#     } else {
-#       process_node(dataframe = dataframe, answer)
-#     }
-#   }
-# }
+      # if no node meets the above criterion, a is a 0 length character vector
+      if (identical(a, character(0))) {
+        return("Finished auto-generating tree based on number.")
+      }
 
-# auto_process <- function(dataframe = df,
-#                          numOrVar = "num",
-#                          N = 30,
-#                          saveDirectory = saveDirectory) {
-#   # check if 'N' is a number
-#   if (!is.numeric(N)) {
-#     return("Not a number!")
-#   }
+      # process all nodes present in a
+      for (nodeID in a) {
+        cat("\n", "=====")
+        process_node(dataframe = dataframe, id = nodeID)
+        cat("=====", "\n", "Processed!", "\n")
+      }
+    }
 
-#   # default assumes "num" but other option is "var" for a variance cutoff
-#   if (identical(numOrVar, "num")) {
-#     if (N %% 1 != 0) {
-#       return("Not a whole number!")
-#     } # must be a whole number for option 'num
+  } else if (identical(numOrVar, "var")) {
+    N <- round(N, 2) # round the input value to two decimals
 
-#     # if the tests pass, then we know to process based on a number cutoff
-#     while (TRUE) {
-#       a <- unexplored_nodes('name')
-#       b <- unexplored_nodes('number')
+    while (TRUE) {
+      a <- unexplored_nodes('name') # get list of unexpanded nodes
+      b <- c()
+      e <-
+        unexplored_nodes("number") # get list of how many members each has
 
-#       # hopefully, the two vectors are the same length
-#       a <- a[b > N]
+      # if a node has only three or fewer members, it should not be expanded
+      a <- a[e > 3]
 
-#       # if no node meets the above criterion, a is a 0 length character vector
-#       if (identical(a, character(0))) {
-#         return("Finished auto-generating tree based on number.")
-#       }
+      for (nodeID in a) {
+        v <-
+          explained_variance_of_node(
+            dataframe = dataframe,
+            nodeID = nodeID,
+            saveDirectory = saveDirectory
+          )
+        n <- get_node_position(nodeID)
+        master_list[[n]]$var <<- v
+        b <- c(b, round(v[1] + v[2], 2))
+      }
 
-#       # process all nodes present in a
-#       for (i in a) {
-#         cat("\n", "=====")
-#         process_node(dataframe = dataframe, id = i)
-#         cat("\n", "=====", "\n", "Processed!", "\n")
-#       }
-#     }
+      # filter array based on the cutoff variance
+      a <- a[b < N]
 
-#   } else if (identical(numOrVar, "var")) {
-#     N <- round(N, 2) # round the input value to two decimals
+      if (identical(a, character(0))) {
+        return("Finished auto-generating tree based on variance.")
+      }
 
-#     while (TRUE) {
-#       a <- unexplored_nodes('name') # get list of unexpanded nodes
-#       b <- c()
-#       e <-
-#         unexplored_nodes("number") # get list of how many members each has
+      for (nodeID in a) {
+        cat('\n', '=====')
+        process_node(dataframe = dataframe, id = nodeID)
+        cat('\n', '=====', '\n', 'Processed!', '\n')
+      }
+    }
 
-#       # if a node has only three or fewer members, it should not be expanded
-#       a <- a[e > 3]
-
-#       for (i in a) {
-#         v <-
-#           explained_variance_of_node(
-#             dataframe = dataframe,
-#             nameOfNode = i,
-#             saveDirectory = saveDirectory
-#           )
-#         n <- get_node_position(i)
-#         master_list[[n]]$var <<- v
-#         b <- c(b, round(v[1] + v[2], 2))
-#       }
-
-#       # filter array based on the cutoff variance
-#       a <- a[b < N]
-
-#       if (identical(a, character(0))) {
-#         return("Finished auto-generating tree based on variance.")
-#       }
-
-#       for (i in a) {
-#         cat('\n', '=====')
-#         process_node(dataframe = dataframe, id = i)
-#         cat('=====','\n','Processed!','\n')
-#       }
-#     }
-
-#   } else {
-#     return("Please enter either 'num' or 'var'.")
-#   }
-# }
+  } else {
+    return("Please enter either 'num' or 'var'.")
+  }
+}
 
 make_pca_plot <-
   function(nodeID,
            axis1 = 1,
            axis2 = 2,
            max_points_loadings = 5000) {
-    p <- readRDS(file.path(getwd(),
-                           parameters$save_folder,
-                           paste0(nodeID,"_pca_obj.RDS")))
+    p <- readRDS(file.path(
+      getwd(),
+      parameters$save_folder,
+      paste0(nodeID, "_pca_obj.RDS")
+    ))
 
     plt_scores <-
       plot_ly(
@@ -526,10 +487,12 @@ make_pca_html <-
            axis2 = 2,
            outfile = "pca",
            max_points_loadings = 5000) {
-    pca <- make_pca_plot(nodeID=nodeID,
-                         axis1 = axis1,
-                         axis2 = axis2,
-                         max_points_loadings = max_points_loadings)
+    pca <- make_pca_plot(
+      nodeID = nodeID,
+      axis1 = axis1,
+      axis2 = axis2,
+      max_points_loadings = max_points_loadings
+    )
     filename_scores <-
       file.path(getwd(),
                 outfile,
@@ -553,8 +516,9 @@ make_dendrogram <- function(dataframe = df, nodeName) {
   n <- get_node_position(nodeName)
   name_list <- master_list[[n]]$members
 
-  df <- remove_zeros(dataframe[name_list, ])
+  df <- dataframe[name_list,]
   df.s <- scale_pareto(df)
+  df.s <- remove_nas(df.s)
   df.cor <- cor(x = t(df.s), y = t(df.s)) #correlation matrix
   df.clust <-
     hclust(as.dist(1 - (df.cor)), method = "average") #clusters
@@ -567,34 +531,41 @@ make_dendrogram <- function(dataframe = df, nodeName) {
 
 make_hca_plot_pdf <-
   function(dataframe = df,
-           nodeName,
-           w = 16,
-           h = 9,
-           lwd = 3,
+           nodeID,
+           width = 16,
+           height = 9,
+           lwd = 2,
            outfile = "hca") {
-    n <- get_node_position(nodeName)
+    n <- get_node_position(nodeID)
     number_of_members <- length(master_list[[n]]$members)
     d <- master_list[[n]]$dend
 
+    width = width_of_pdf(numberOfLeaves = number_of_members) # get width
+
     if (is.null(d)) {
-      d <- make_dendrogram(dataframe = dataframe, nodeName)
+      d <- make_dendrogram(dataframe = dataframe, nodeName = nodeID)
     }
 
     filename <-
       file.path(getwd(),
                 outfile,
-                paste0(nodeName, "-", number_of_members, ".pdf"))
+                paste0(nodeID, "-", number_of_members, ".pdf"))
+
+    if (!dir.exists(outfile)) {
+      dir.create(outfile)
+    } # create directory if it doesn't exist
+
     pdf(file = filename,
-        width = w,
-        height = h)
-    par(bg = colors[6], fg = colors[4])
+        width = width,
+        height = height)
+    par(bg = "#d3d3d3", fg = '#000000')
     d %>%
-      set("branches_lwd", lwd) %>%
-      color_branches(k = 2, col = colors[c(1, 3)]) %>%
+      dendextend::set("branches_lwd", lwd) %>%
+      dendextend::color_branches(k = 2, col = 1:2) %>%
       hang.dendrogram %>%
       plot(panel.first = {
         grid(
-          col = colors[8],
+          col = '#ffffff',
           lty = 3,
           nx = NA,
           ny = NULL
@@ -602,6 +573,122 @@ make_hca_plot_pdf <-
       })
     dev.off()
   }
+
+make_colored_hca_plot_pdf <-
+  function(dataframe = df,
+           nodeID,
+           outfile = "hca",
+           metadata,
+           color_column_names) {
+    d <- master_list[[get_node_position(nodeID)]]$dend # get dendrogram
+
+    if (is.null(d)) {
+      d <- make_dendrogram(dataframe = dataframe, nodeID)
+    }
+    color_vector_list <- list()
+
+    # filter metadata so that only matching names
+    for (col in color_column_names) {
+      df_for_legend <- metadata[match(labels(d), metadata[, 1]),]
+      color_vector_list[[col]] <- df_for_legend[, col]
+    }
+
+    if (length(color_vector_list) == 2) {
+      # this means there is a second category with colors so we should
+      # color the labels to show this category
+      labels_colors(d) <- color_vector_list[[2]]
+    }
+
+    number_of_members <-
+      length(labels(d)) # get total number of leaves
+    w = width_of_pdf(numberOfLeaves = number_of_members) # get width
+
+    if (!dir.exists(outfile)) {
+      dir.create(outfile)
+    } # create directory if it doesn't exist
+
+    filename <-
+      file.path(getwd(),
+                outfile,
+                paste0(nodeID, "-", number_of_members, ".pdf"))
+    pdf(file = filename,
+        width = w,
+        height = 9)
+    # par(bg = "#E5E5E5", fg = "#5e5e5e")
+    d %>%
+      dendextend::set("branches_lwd", 2) %>% # make branches' lines wider
+      dendextend::set("leaves_pch", 16) %>% # make leaves points circles
+      dendextend::set("leaves_cex", 2.5) %>% # make circles bigger
+      dendextend::set("leaves_col", color_vector_list[[color_column_names[1]]]) %>% # assign colors to circles
+      # hang.dendrogram %>%
+      plot(panel.first = {
+        grid(
+          col = '#5e5e5e',
+          lty = 3,
+          nx = NA,
+          ny = NULL
+        )
+      })
+    if (length(color_vector_list) == 1) {
+      legend(
+        "topright",
+        legend = unique(df_for_legend[, 2]),
+        fill = unique(df_for_legend[, 3]),
+        border = "black",
+        cex = 1,
+        y.intersp = 0.7,
+        ncol = 2,
+        title = paste0(colnames(metadata)[2], " (circles)")
+      )
+    }
+    if (length(color_vector_list) == 2) {
+      legend(
+        "topright",
+        legend = unique(df_for_legend[, 2]),
+        fill = unique(df_for_legend[, 4]),
+        border = "black",
+        cex = 1,
+        y.intersp = 0.7,
+        ncol = 2,
+        title = paste0(colnames(metadata)[2], " (circles)")
+      )
+      legend(
+        'topleft',
+        legend = unique(df_for_legend[, 3]),
+        fill = unique(df_for_legend[, 5]),
+        border = "black",
+        cex = 1,
+        y.intersp = 0.7,
+        ncol = 2,
+        title = paste0(colnames(metadata)[3], " (labels)")
+      )
+    }
+    dev.off()
+
+    # pdf(file = "legend.pdf", width=7, height=7)
+    # plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
+    # legend("topright", legend = unique(metadata[,2]), fill = unique(metadata[,3]),
+    #        border = "black", cex=0.7, y.intersp = 0.7, ncol=2)
+    # dev.off()
+  }
+
+add_color_column <- function(metadata, column_names) {
+  # make sure the columns are factors
+  metadata[column_names] <- lapply(metadata[column_names], factor)
+
+  # for each column, add a corresponding color column named <colname>.color
+  for (name in column_names) {
+    metadata[paste0(name, ".color")] <-
+      as.numeric(unlist(metadata[name]))
+  }
+  return(metadata)
+}
+
+width_of_pdf <- function(numberOfLeaves) {
+  # increase width by 16in for every 25 extra leaves
+  w = (as.integer(numberOfLeaves / 50) + 1) * 16
+  return(w)
+}
 
 find_strain <- function(strainName) {
   unlist(lapply(
