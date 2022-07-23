@@ -63,3 +63,8 @@ figures/**
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
 .Rproj.user
+.ipynb_checkpoints/
+*.ipynb
+.venv/
+.venv
+notebooks
