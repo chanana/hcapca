@@ -15,7 +15,7 @@
 Install [Docker Community Edition (CE)](https://docs.docker.com/install) for your operating system. For older Mac and Windows systems, you will need to install [Docker Toolbox](https://docs.docker.com/toolbox/overview) instead.
 
 ## 2. Get example data, scripts, and config file
-Example `data`, `R scripts`, and `config_file.yaml` can be found at [this link](https://uwmadison.box.com/v/schanana-hcapca). Please download and unzip to one place such that your directory structure looks like:
+Example `data`, `R scripts`, and `config_file.yaml` can be found by downloading this repo such that your directory structure looks like this:
 
 ```
 base
