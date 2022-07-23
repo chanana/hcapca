@@ -1,19 +1,43 @@
 ---
 default:
-    # Location of accessory_functions.R (do not change if using docker)
-    # if using host system, change to wherever both hcapca.R and 
-    # accessory_functions.R are located
-    input_folder_accessory_script: "."
-
+    ##########################################
+    # Settings you will likely need to modify
+    ##########################################
     # Directory to store outputs
     output_folder: "output"
 
-    # Will be created inside directory "output_folder"
-    output_folder_hca: "hca"
+    # Save directory for objects
+    save_folder: "save_points"
 
     # save PCAs as separate files
     # Accepts: TRUE, FALSE
-    output_pca: FALSE
+    output_pca: TRUE
+
+    # Input Single Table Location:
+    single_table: "data/example_feature_table.csv"
+
+    # Generate tree based on number of members or variance of cluster
+    # Accepts: "num" or "var"
+    numOrVar: "var"
+
+    # The cut-off value for either setting from above
+    # Accepts: any positive rational number
+    N_numOrVar: 30
+
+    # optional metadata table; see FORMAT for details
+    # metadata: "data/metadata_2.txt"
+    
+    ############################################
+    ### Settings that are less likely to change
+    ############################################
+    
+    # Location of accessory_functions.R (do not change if using docker)
+    # if using host system, change to wherever both hcapca.R and
+    # accessory_functions.R are located
+    input_folder_accessory_script: "."
+
+    # Will be created inside directory "output_folder"
+    output_folder_hca: "hca"
 
     # output directory for pca, ignored if output_pca is FALSE
     output_folder_pca: "pca"
@@ -24,18 +48,9 @@ default:
     # time_table: "data/Variables_t.dat"
     # sample_names: "data/Analyses.dat"
 
-    # Input Single Table Location:
-    single_table: "data/20191030_Joiner.csv"
-
     # Transpose?
     transpose: TRUE
-    
-    # optional metadata table; see FORMAT for details
-    metadata: "data/metadata_2.txt"
 
-    # Save directory for objects
-    save_folder: "save_points"
-    
     # Pattern for sample name matching; if you do not need pattern matching,
     # please enter ".*" as the pattern.
     # Accepts: regex patterns
@@ -44,15 +59,6 @@ default:
     # column to remove from original table before transposition
     # col_to_remove: 2
 
-    # Generate tree based on number of members or variance of cluster
-    # Accepts: "num" or "var"
-    numOrVar: "var"
-
-    # The cut-off value for either setting from above
-    # Accepts: any positive rational number
-    N_numOrVar: 30
-
     # The number of maximum points to display on a loadings plot
     # use this if script gets killed because of OOM (Out of Memory)
     max_points_loadings: 500
-... 

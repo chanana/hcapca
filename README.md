@@ -24,10 +24,7 @@ base
   |--accessory_functions.R
   |--app.R
   |--data
-      |--Analyses.dat
-      |--Variables_m.dat
-      |--Variables_t.dat
-      |--Table.dat
+      |--example_feature_table.csv
 ```
 You can use your own data instead of example data here. The format of each file must be like the example data.  
 _Note: The <b><span style="color:blue">`base`</span></b> directory is where you unzip the `data` folder, `R scripts`, and `config_file.yaml`._

@@ -9,4 +9,7 @@ shinylog/*
 
 # tables
 *.csv
-!example_data_table.csv
+!example_feature_table.csv
+
+# binaries
+*.pdf
